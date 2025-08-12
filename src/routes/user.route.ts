@@ -17,13 +17,16 @@ import {
 
 const userRoutes: Router = express.Router();
 
-userRoutes.post("/checkemail", checkEmail); // OK!
+userRoutes.get("/validatetoken", validateRefreshTokenMiddleware, validateNewAccessToken);
+userRoutes.post("/login", loginUser);
+userRoutes.put("/edit/:id", validateAccessTokenMiddleware, editUser);
+
+userRoutes.post("/checkemail", checkEmail);
 userRoutes.post("/resetpassword", resetPassword);
-userRoutes.post("/create", validateEmailTokenMiddleware, createUser); // OK!
-userRoutes.post("/login", loginUser); // OK!
-userRoutes.put("/updatepuser/:id", validateEmailTokenMiddleware, updatePssUser); // OK!
+userRoutes.post("/create", validateEmailTokenMiddleware, createUser);
+userRoutes.post("/login", loginUser);
+userRoutes.put("/updatepuser/:id", validateEmailTokenMiddleware, updatePssUser);
 userRoutes.put("/edit/:id", validateAccessTokenMiddleware, editUser);
 userRoutes.post("/logout", logoutUser);
-userRoutes.get("/validatetoken", validateRefreshTokenMiddleware, validateNewAccessToken);
 
 export default userRoutes;

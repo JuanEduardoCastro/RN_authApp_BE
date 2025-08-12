@@ -47,7 +47,7 @@ export const createRefreshToken = async (user: IUser) => {
     const refreshToken = jwt.sign({ _token }, process.env.RTOKEN_SECRET_KEY, {
       issuer: process.env.RTOKEN_ISSUER,
       algorithm: "HS256",
-      expiresIn: 900, // 15 min in seconds
+      expiresIn: 864000, // 10 days
     });
 
     const saveRefreshToken = await RefreshToken.create({
@@ -83,7 +83,7 @@ export const createNewAccessToken = (
     {
       issuer: process.env.ATOKEN_ISSUER,
       algorithm: "HS256",
-      expiresIn: 300, // 5 min in seconds
+      expiresIn: 1200, // 20 minutes
     }
   );
 

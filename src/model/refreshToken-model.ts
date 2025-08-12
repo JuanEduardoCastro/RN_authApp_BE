@@ -15,7 +15,7 @@ const refreshTokenSchema = new mongoose.Schema(
     expiresAt: {
       type: Date,
       default: Date.now,
-      expires: "15m",
+      expires: 864000, // 10 days
     },
   },
   { timestamps: true }
@@ -32,7 +32,7 @@ const tempTokenSchema = new mongoose.Schema(
     expiresAt: {
       type: Date,
       default: Date.now,
-      expires: "6m",
+      expires: 1200, // 20 minutes
     },
   },
   { timestamps: true }

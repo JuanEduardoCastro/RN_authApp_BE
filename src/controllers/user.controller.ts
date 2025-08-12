@@ -10,7 +10,153 @@ import {
 } from "./refreshToken.controller";
 import { RefreshToken, TempToken } from "../model/refreshToken-model";
 
-/* Check if email exists */ /* OK!  */
+/* Validate user token with middleware */
+
+export const validateNewAccessToken = async (req: Request, res: Response) => {
+  try {
+    const token = req.token;
+    const tokenVerified = JSON.parse(req.tokenVerified);
+
+    const existingRefreshToken = await RefreshToken.findOne({ rtokken: token }).populate("user");
+    if (!existingRefreshToken) {
+      res.status(401).send({ message: "Token expires. User have to send credentials." });
+      return;
+    }
+    const existingUser = await User.findOne({ _id: existingRefreshToken.user });
+    if (!existingUser) {
+      res.status(404).send({ message: "User not found" });
+      return;
+    } else {
+      const accessToken = createNewAccessToken(
+        existingUser._id,
+        existingUser.isGoogleLogin,
+        existingUser.isGitHubLogin,
+        existingUser.isAppleLogin
+      );
+      if (accessToken) {
+        res.status(200).send({
+          accessToken,
+          user: {
+            firstName: existingUser.firstName,
+            email: existingUser.email,
+            lastName: existingUser.lastName,
+            phoneNumber: existingUser.phoneNumber,
+            occupation: existingUser.occupation,
+            isGoogleLogin: existingUser.isGoogleLogin,
+            isGitHubLogin: existingUser.isGitHubLogin,
+            isAppleLogin: existingUser.isAppleLogin,
+            avatarURL: existingUser.avatarURL,
+            createdAt: existingUser.createdAt,
+            updatedAt: existingUser.updatedAt,
+          },
+        });
+        return;
+      }
+    }
+  } catch (error) {
+    throw error;
+  }
+};
+
+/* Login a user with credentials */
+
+export const loginUser = async (req: Request, res: Response) => {
+  try {
+    const { email, password }: IUser = req.body;
+
+    const existingUser = await User.findOne({ email });
+    if (!existingUser) {
+      res.status(404).send({ message: "User not found" });
+      return;
+    }
+
+    const isPasswordVerify = await bcrypt.compare(password, existingUser.password);
+
+    if (isPasswordVerify) {
+      const accessToken = createNewAccessToken(
+        existingUser._id,
+        existingUser.isGoogleLogin,
+        existingUser.isGitHubLogin,
+        existingUser.isAppleLogin
+      );
+      const refreshToken = await createRefreshToken(existingUser);
+      if (refreshToken) {
+        res.status(200).send({
+          refreshToken,
+          accessToken,
+          user: {
+            firstName: existingUser.firstName,
+            email: existingUser.email,
+            lastName: existingUser.lastName,
+            phoneNumber: existingUser.phoneNumber,
+            occupation: existingUser.occupation,
+            isGoogleLogin: existingUser.isGoogleLogin,
+            isGitHubLogin: existingUser.isGitHubLogin,
+            isAppleLogin: existingUser.isAppleLogin,
+            avatarURL: existingUser.avatarURL,
+            createdAt: existingUser.createdAt,
+            updatedAt: existingUser.updatedAt,
+          },
+        });
+        return;
+      }
+    } else {
+      res.status(401).send({ message: "Wrong credentials" });
+      return;
+    }
+  } catch (error) {
+    throw error;
+  }
+};
+
+/* Edit profile of a user by id */
+
+export const editUser = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const editData = req.body;
+    const tokenDecoded = req.tokenVerified;
+
+    const existingUser = await User.findByIdAndUpdate({ _id: id }, editData, {
+      returnOriginal: false,
+    });
+    if (!existingUser) {
+      res.status(409).send({ message: "User not found" });
+      return;
+    }
+
+    if (existingUser) {
+      const accessToken = createNewAccessToken(
+        existingUser._id,
+        existingUser.isGoogleLogin,
+        existingUser.isGitHubLogin,
+        existingUser.isAppleLogin
+      );
+      res.status(201).send({
+        message: "User edited successfully",
+        accessToken,
+        user: {
+          firstName: existingUser.firstName,
+          email: existingUser.email,
+          lastName: existingUser.lastName,
+          phoneNumber: existingUser.phoneNumber,
+          occupation: existingUser.occupation,
+          isGoogleLogin: existingUser.isGoogleLogin,
+          isGitHubLogin: existingUser.isGitHubLogin,
+          isAppleLogin: existingUser.isAppleLogin,
+          avatarURL: existingUser.avatarURL,
+        },
+      });
+      return;
+    }
+  } catch (error) {
+    throw error;
+  }
+};
+
+/* ------------------------------------ */
+
+/* Check if email exists */
 
 export const checkEmail = async (req: Request, res: Response) => {
   try {
@@ -40,7 +186,7 @@ export const checkEmail = async (req: Request, res: Response) => {
   }
 };
 
-/* Create a new user */ /* OK!  */
+/* Create a new user */
 
 export const createUser = async (req: Request, res: Response) => {
   try {
@@ -96,58 +242,7 @@ export const createUser = async (req: Request, res: Response) => {
   }
 };
 
-/* Login a user with credentials */ /* OK!  */
-
-export const loginUser = async (req: Request, res: Response) => {
-  try {
-    const { email, password }: IUser = req.body;
-
-    const existingUser = await User.findOne({ email });
-    if (!existingUser) {
-      res.status(404).send({ message: "User not found" });
-      return;
-    }
-
-    const isPasswordVerify = await bcrypt.compare(password, existingUser.password);
-
-    if (isPasswordVerify) {
-      const accessToken = createNewAccessToken(
-        existingUser._id,
-        existingUser.isGoogleLogin,
-        existingUser.isGitHubLogin,
-        existingUser.isAppleLogin
-      );
-      const refreshToken = await createRefreshToken(existingUser);
-      if (refreshToken) {
-        res.status(200).send({
-          refreshToken,
-          accessToken,
-          user: {
-            firstName: existingUser.firstName,
-            email: existingUser.email,
-            lastName: existingUser.lastName,
-            phoneNumber: existingUser.phoneNumber,
-            occupation: existingUser.occupation,
-            isGoogleLogin: existingUser.isGoogleLogin,
-            isGitHubLogin: existingUser.isGitHubLogin,
-            isAppleLogin: existingUser.isAppleLogin,
-            avatarURL: existingUser.avatarURL,
-            createdAt: existingUser.createdAt,
-            updatedAt: existingUser.updatedAt,
-          },
-        });
-        return;
-      }
-    } else {
-      res.status(401).send({ message: "Wrong credentials" });
-      return;
-    }
-  } catch (error) {
-    throw error;
-  }
-};
-
-/* Reset password */ /* OK!  */
+/* Reset password */
 
 export const resetPassword = async (req: Request, res: Response) => {
   try {
@@ -175,7 +270,7 @@ export const resetPassword = async (req: Request, res: Response) => {
   }
 };
 
-/* Update new password of a user by id */ /* OK!  */
+/* Update new password of a user by id */
 
 export const updatePssUser = async (req: Request, res: Response) => {
   try {
@@ -216,53 +311,7 @@ export const updatePssUser = async (req: Request, res: Response) => {
   }
 };
 
-/* Update profile of a user by id */ /* OK!  */
-
-export const editUser = async (req: Request, res: Response) => {
-  try {
-    const { id } = req.params;
-    const editData = req.body;
-    const tokenDecoded = req.tokenVerified;
-    // console.log("token decoded in edit user", tokenDecoded);
-
-    const existingUser = await User.findByIdAndUpdate({ _id: id }, editData, {
-      returnOriginal: false,
-    });
-    if (!existingUser) {
-      res.status(409).send({ message: "User not found" });
-      return;
-    }
-
-    if (existingUser) {
-      const accessToken = createNewAccessToken(
-        existingUser._id,
-        existingUser.isGoogleLogin,
-        existingUser.isGitHubLogin,
-        existingUser.isAppleLogin
-      );
-      res.status(201).send({
-        message: "User edited successfully",
-        accessToken,
-        user: {
-          firstName: existingUser.firstName,
-          email: existingUser.email,
-          lastName: existingUser.lastName,
-          phoneNumber: existingUser.phoneNumber,
-          occupation: existingUser.occupation,
-          isGoogleLogin: existingUser.isGoogleLogin,
-          isGitHubLogin: existingUser.isGitHubLogin,
-          isAppleLogin: existingUser.isAppleLogin,
-          avatarURL: existingUser.avatarURL,
-        },
-      });
-      return;
-    }
-  } catch (error) {
-    throw error;
-  }
-};
-
-/* Logout user */ /* OK!  */
+/* Logout user */
 
 export const logoutUser = async (req: Request, res: Response) => {
   try {
@@ -281,56 +330,6 @@ export const logoutUser = async (req: Request, res: Response) => {
       return;
     }
     return;
-  } catch (error) {
-    throw error;
-  }
-};
-
-// /* Validate user token with middleware */ /* OK!  */
-
-export const validateNewAccessToken = async (req: Request, res: Response) => {
-  try {
-    const token = req.token;
-    const tokenVerified = JSON.parse(req.tokenVerified);
-
-    // console.log("-----> ??", typeof tokenVerified, tokenVerified);
-
-    const existingRefreshToken = await RefreshToken.findOne({ rtokken: token }).populate("user");
-    if (!existingRefreshToken) {
-      res.status(401).send({ message: "Token expires. User have to send credentials." });
-      return;
-    }
-    const existingUser = await User.findOne({ _id: existingRefreshToken.user });
-    if (!existingUser) {
-      res.status(404).send({ message: "User not found" });
-      return;
-    } else {
-      const accessToken = createNewAccessToken(
-        existingUser._id,
-        existingUser.isGoogleLogin,
-        existingUser.isGitHubLogin,
-        existingUser.isAppleLogin
-      );
-      if (accessToken) {
-        res.status(200).send({
-          accessToken,
-          user: {
-            firstName: existingUser.firstName,
-            email: existingUser.email,
-            lastName: existingUser.lastName,
-            phoneNumber: existingUser.phoneNumber,
-            occupation: existingUser.occupation,
-            isGoogleLogin: existingUser.isGoogleLogin,
-            isGitHubLogin: existingUser.isGitHubLogin,
-            isAppleLogin: existingUser.isAppleLogin,
-            avatarURL: existingUser.avatarURL,
-            createdAt: existingUser.createdAt,
-            updatedAt: existingUser.updatedAt,
-          },
-        });
-        return;
-      }
-    }
   } catch (error) {
     throw error;
   }
