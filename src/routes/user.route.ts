@@ -18,9 +18,6 @@ import {
 const userRoutes: Router = express.Router();
 
 userRoutes.get("/validatetoken", validateRefreshTokenMiddleware, validateNewAccessToken);
-userRoutes.post("/login", loginUser);
-userRoutes.put("/edit/:id", validateAccessTokenMiddleware, editUser);
-
 userRoutes.post("/checkemail", checkEmail);
 userRoutes.post("/resetpassword", resetPassword);
 userRoutes.post("/create", validateEmailTokenMiddleware, createUser);

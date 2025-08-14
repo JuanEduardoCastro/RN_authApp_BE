@@ -9,22 +9,22 @@ import {
   createRefreshToken,
 } from "./refreshToken.controller";
 import { RefreshToken, TempToken } from "../model/refreshToken-model";
+import { error } from "console";
 
 /* Validate user token with middleware */
 
 export const validateNewAccessToken = async (req: Request, res: Response) => {
   try {
     const token = req.token;
-    const tokenVerified = JSON.parse(req.tokenVerified);
 
     const existingRefreshToken = await RefreshToken.findOne({ rtokken: token }).populate("user");
     if (!existingRefreshToken) {
-      res.status(401).send({ message: "Token expires. User have to send credentials." });
+      res.status(401).send({ error: "Token expires. User have to send credentials." });
       return;
     }
     const existingUser = await User.findOne({ _id: existingRefreshToken.user });
     if (!existingUser) {
-      res.status(404).send({ message: "User not found" });
+      res.status(404).send({ error: "User not found" });
       return;
     } else {
       const accessToken = createNewAccessToken(
@@ -66,7 +66,7 @@ export const loginUser = async (req: Request, res: Response) => {
 
     const existingUser = await User.findOne({ email });
     if (!existingUser) {
-      res.status(404).send({ message: "User not found" });
+      res.status(404).send({ error: "User not found" });
       return;
     }
 
@@ -101,7 +101,7 @@ export const loginUser = async (req: Request, res: Response) => {
         return;
       }
     } else {
-      res.status(401).send({ message: "Wrong credentials" });
+      res.status(401).send({ error: "Wrong credentials" });
       return;
     }
   } catch (error) {
@@ -121,7 +121,7 @@ export const editUser = async (req: Request, res: Response) => {
       returnOriginal: false,
     });
     if (!existingUser) {
-      res.status(409).send({ message: "User not found" });
+      res.status(404).send({ error: "User not found" });
       return;
     }
 
@@ -164,7 +164,7 @@ export const checkEmail = async (req: Request, res: Response) => {
 
     const checkEmail = await User.findOne({ email });
     if (checkEmail) {
-      res.status(204).send({ error: "This email already exists." });
+      res.status(204).send({ message: "This email already exists." });
       return;
     }
 
@@ -177,7 +177,7 @@ export const checkEmail = async (req: Request, res: Response) => {
     res.status(200).send({
       message: "This email is available to create a new user",
       emailToken: emailToken,
-      // This data is for DEV not PRODUCTION
+      // This "data" is for DEV not PRODUCTION
       data: `authapp://app/new-password/${emailToken}`,
     });
     return;
@@ -324,12 +324,14 @@ export const logoutUser = async (req: Request, res: Response) => {
       return;
     }
 
-    const existingRefreshToken = await RefreshToken.findOneAndDelete({ rtokken: token });
+    const existingRefreshToken = await RefreshToken.findOneAndDelete({ user: existingUser._id });
     if (existingRefreshToken) {
       res.status(200).send({ message: "User logout successfully" });
       return;
+    } else {
+      res.status(403).send({ message: "Something went wrong" });
+      return;
     }
-    return;
   } catch (error) {
     throw error;
   }

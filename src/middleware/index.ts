@@ -19,7 +19,7 @@ export const validateRefreshTokenMiddleware = async (
   try {
     const token = req.headers.authorization?.split(" ")[1];
     if (!token) {
-      return res.status(404).json({ error: "Access token is required." });
+      return res.status(403).json({ error: "Access token is required." });
     }
     if (!process.env.RTOKEN_SECRET_KEY) {
       throw new Error("Secret key is not valid.");
@@ -49,7 +49,7 @@ export const validateEmailTokenMiddleware = async (
     const token = req.headers.authorization?.split(" ")[1];
 
     if (!token) {
-      return res.status(404).json({ error: "Email token is required." });
+      return res.status(403).json({ error: "Email token is required." });
     }
     if (!process.env.ATOKEN_SECRET_KEY) {
       throw new Error("Secret key is not valid.");
@@ -62,9 +62,8 @@ export const validateEmailTokenMiddleware = async (
 
       req.tokenVerified = JSON.stringify(tokenVerified);
       req.token = token;
+      next();
     });
-
-    next();
   } catch (error) {
     throw error;
   }
@@ -78,7 +77,7 @@ export const validateAccessTokenMiddleware = async (
   try {
     const token = req.headers.authorization?.split(" ")[1];
     if (!token) {
-      return res.status(404).json({ error: "Access token is required." });
+      return res.status(403).json({ error: "Access token is required." });
     }
     if (!process.env.ATOKEN_SECRET_KEY) {
       throw new Error("Secret key is not valid.");
