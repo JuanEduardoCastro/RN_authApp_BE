@@ -10,7 +10,7 @@ const app = express();
 app.use(express.json());
 app.use(cors());
 
-const PORT = process.env.PROT || 3005;
+const PORT = process.env.PORT || 3005;
 
 connectDB();
 
