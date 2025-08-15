@@ -108,7 +108,7 @@ export const createEmailTokenTest = async (req: Request, res: Response) => {
     const emailToken = jwt.sign({ email, isNew, _id }, process.env.GMAIL_TOKEN_SECRET_KEY, {
       issuer: process.env.GMAIL_TOKEN_ISSUER,
       algorithm: "HS256",
-      expiresIn: 300, // 5 min in seconds
+      expiresIn: 180, // 3 min in seconds
     });
 
     const saveTempToken = await TempToken.create({ ttokken: emailToken });
