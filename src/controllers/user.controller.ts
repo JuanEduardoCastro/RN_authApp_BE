@@ -1,5 +1,5 @@
 import bcrypt from "bcrypt";
-import { Request, Response } from "express";
+import e, { Request, Response } from "express";
 import User from "../model/user-model";
 import { IUser } from "../types/types";
 import { sendEmailValidation, sendResetPasswordValidation } from "../services/emailServices";
@@ -339,17 +339,3 @@ export const logoutUser = async (req: Request, res: Response) => {
     throw error;
   }
 };
-
-/* 
-RefreshToken -> email, id, y otras cosas
-    -> no va a la app, va a "HTTP only coockie" (cannot acces by javascript) ? ? ver en el caso de react native
-    -> expired date: 10 days
-
-
-AccessToken -> toma la misma data o el refresh token 
-    -> si va a la app
-    -> expired date: 15 min ? 
-    -> no guardar en local storage ? guardar en el state
-    -> la app envia el AccessToken y el backend chekea con el refresh token si está OK dentro de su exp! y devuelve un access token nuevo
-
-*/
