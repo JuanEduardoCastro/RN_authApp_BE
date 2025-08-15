@@ -81,6 +81,9 @@ export const loginUser = async (req: Request, res: Response) => {
       );
       const refreshToken = await createRefreshToken(existingUser);
       if (refreshToken) {
+        const resCheckOtherSession = await RefreshToken.findOneAndDelete({
+          user: existingUser._id,
+        });
         res.status(200).send({
           refreshToken,
           accessToken,
