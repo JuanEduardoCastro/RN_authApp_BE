@@ -1,5 +1,5 @@
 import bcrypt from "bcrypt";
-import e, { Request, Response } from "express";
+import { Request, Response } from "express";
 import User from "../model/user-model";
 import { IUser } from "../types/types";
 import { sendEmailValidation, sendResetPasswordValidation } from "../services/emailServices";
@@ -9,7 +9,6 @@ import {
   createRefreshToken,
 } from "./refreshToken.controller";
 import { RefreshToken, TempToken } from "../model/refreshToken-model";
-import { error } from "console";
 
 /* Validate user token with middleware */
 
@@ -68,6 +67,10 @@ export const loginUser = async (req: Request, res: Response) => {
     if (!existingUser) {
       res.status(404).send({ error: "User not found" });
       return;
+    } else {
+      const resCheckOtherSession = await RefreshToken.findOneAndDelete({
+        user: existingUser._id,
+      });
     }
 
     const isPasswordVerify = await bcrypt.compare(password, existingUser.password);
@@ -81,9 +84,6 @@ export const loginUser = async (req: Request, res: Response) => {
       );
       const refreshToken = await createRefreshToken(existingUser);
       if (refreshToken) {
-        const resCheckOtherSession = await RefreshToken.findOneAndDelete({
-          user: existingUser._id,
-        });
         res.status(200).send({
           refreshToken,
           accessToken,
@@ -309,7 +309,6 @@ export const updatePssUser = async (req: Request, res: Response) => {
     });
     return;
   } catch (error) {
-    console.log("XX -> user.controller.ts:232 -> editUser -> error :", error);
     throw error;
   }
 };

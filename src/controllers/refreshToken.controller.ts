@@ -60,7 +60,6 @@ export const createRefreshToken = async (user: IUser) => {
 
     return refreshToken;
   } catch (error) {
-    console.log("XX -> refreshToken.controller.ts:20 -> createRefreshToken -> error :", error);
     throw error;
   }
 };

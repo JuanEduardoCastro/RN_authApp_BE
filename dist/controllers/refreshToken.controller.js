@@ -48,7 +48,7 @@ const createRefreshToken = (user) => __awaiter(void 0, void 0, void 0, function*
         const refreshToken = jsonwebtoken_1.default.sign({ _token }, process.env.RTOKEN_SECRET_KEY, {
             issuer: process.env.RTOKEN_ISSUER,
             algorithm: "HS256",
-            expiresIn: 900, // 15 min in seconds
+            expiresIn: 864000, // 10 days
         });
         const saveRefreshToken = yield refreshToken_model_1.RefreshToken.create({
             rtokken: refreshToken,
@@ -60,7 +60,6 @@ const createRefreshToken = (user) => __awaiter(void 0, void 0, void 0, function*
         return refreshToken;
     }
     catch (error) {
-        console.log("XX -> refreshToken.controller.ts:20 -> createRefreshToken -> error :", error);
         throw error;
     }
 });
@@ -73,7 +72,7 @@ const createNewAccessToken = (_id, isGooggleLogin, isGitHubLogin, isAppleLogin) 
     const accessToken = jsonwebtoken_1.default.sign({ _id, isGooggleLogin, isGitHubLogin, isAppleLogin }, process.env.ATOKEN_SECRET_KEY, {
         issuer: process.env.ATOKEN_ISSUER,
         algorithm: "HS256",
-        expiresIn: 300, // 5 min in seconds
+        expiresIn: 1200, // 20 minutes
     });
     if (!accessToken) {
         throw new Error("Something went wrong with email token temp save");
@@ -93,7 +92,7 @@ const createEmailTokenTest = (req, res) => __awaiter(void 0, void 0, void 0, fun
         const emailToken = jsonwebtoken_1.default.sign({ email, isNew, _id }, process.env.GMAIL_TOKEN_SECRET_KEY, {
             issuer: process.env.GMAIL_TOKEN_ISSUER,
             algorithm: "HS256",
-            expiresIn: 300, // 5 min in seconds
+            expiresIn: 180, // 3 min in seconds
         });
         const saveTempToken = yield refreshToken_model_1.TempToken.create({ ttokken: emailToken });
         if (!saveTempToken) {
