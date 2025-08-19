@@ -245,9 +245,10 @@ exports.resetPassword = resetPassword;
 /* Update new password of a user by id */
 const updatePssUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const token = req.tokenVerified;
+        const tokenVerified = req.tokenVerified;
+        const token = req.token;
         if (token) {
-            const checkTempToken = yield refreshToken_model_1.TempToken.findOneAndDelete({ ttokken: token });
+            const checkTempToken = yield refreshToken_model_1.TempToken.findOne({ ttokken: token });
             if (!checkTempToken) {
                 res.status(403).json({ error: "The token is invalid or expired." });
                 return;
@@ -263,6 +264,7 @@ const updatePssUser = (req, res) => __awaiter(void 0, void 0, void 0, function* 
             res.status(409).send({ message: "User not found" });
             return;
         }
+        const deleteTempToken = yield refreshToken_model_1.TempToken.findOneAndDelete({ ttokken: token });
         res.status(201).send({
             message: "Password updated successfully",
         });

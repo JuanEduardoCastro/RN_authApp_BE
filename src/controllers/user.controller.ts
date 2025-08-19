@@ -277,10 +277,12 @@ export const resetPassword = async (req: Request, res: Response) => {
 
 export const updatePssUser = async (req: Request, res: Response) => {
   try {
-    const token = req.tokenVerified;
+    const tokenVerified = req.tokenVerified;
+    const token = req.token;
 
     if (token) {
-      const checkTempToken = await TempToken.findOneAndDelete({ ttokken: token });
+      const checkTempToken = await TempToken.findOne({ ttokken: token });
+
       if (!checkTempToken) {
         res.status(403).json({ error: "The token is invalid or expired." });
         return;
@@ -303,6 +305,8 @@ export const updatePssUser = async (req: Request, res: Response) => {
       res.status(409).send({ message: "User not found" });
       return;
     }
+
+    const deleteTempToken = await TempToken.findOneAndDelete({ ttokken: token });
 
     res.status(201).send({
       message: "Password updated successfully",
