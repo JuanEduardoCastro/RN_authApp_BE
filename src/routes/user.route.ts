@@ -23,7 +23,7 @@ userRoutes.post("/resetpassword", resetPassword);
 userRoutes.post("/create", validateEmailTokenMiddleware, createUser);
 userRoutes.post("/login", loginUser);
 userRoutes.put("/updatepuser/:id", validateEmailTokenMiddleware, updatePssUser);
-userRoutes.put("/edit/:id", validateAccessTokenMiddleware, editUser);
+userRoutes.put("/edituser/:id", validateAccessTokenMiddleware, editUser);
 userRoutes.post("/logout", logoutUser);
 
 export default userRoutes;

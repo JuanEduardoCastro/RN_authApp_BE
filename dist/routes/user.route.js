@@ -13,7 +13,7 @@ userRoutes.post("/resetpassword", user_controller_1.resetPassword);
 userRoutes.post("/create", middleware_1.validateEmailTokenMiddleware, user_controller_1.createUser);
 userRoutes.post("/login", user_controller_1.loginUser);
 userRoutes.put("/updatepuser/:id", middleware_1.validateEmailTokenMiddleware, user_controller_1.updatePssUser);
-userRoutes.put("/edit/:id", middleware_1.validateAccessTokenMiddleware, user_controller_1.editUser);
+userRoutes.put("/edituser/:id", middleware_1.validateAccessTokenMiddleware, user_controller_1.editUser);
 userRoutes.post("/logout", user_controller_1.logoutUser);
 exports.default = userRoutes;
 //# sourceMappingURL=user.route.js.map
