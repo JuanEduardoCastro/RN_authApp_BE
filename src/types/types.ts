@@ -8,15 +8,16 @@ export interface IUser {
   lastName?: string | null | undefined;
   phoneNumber?: IPhoneNumber;
   occupation?: string | null | undefined;
-  isGoogleLogin?: boolean;
-  isGitHubLogin?: boolean;
-  isAppleLogin?: boolean;
+  provider?: IProvider;
   avatarURL?: string | null;
   roles: [string];
   createdAt: any;
   updatedAt: any;
 }
 
+export interface IProvider {
+  enum: ["google", "github", "apple", null];
+}
 export interface IPhoneNumber {
   code: string | null;
   dialCode: string | null;

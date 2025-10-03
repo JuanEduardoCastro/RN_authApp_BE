@@ -5,12 +5,12 @@ const refreshTokenSchema = new mongoose.Schema(
   {
     rtokken: {
       type: String,
-      require: true,
+      required: true,
     },
     user: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
-      require: true,
+      required: true,
     },
     expiresAt: {
       type: Date,
@@ -27,7 +27,7 @@ const tempTokenSchema = new mongoose.Schema(
   {
     ttokken: {
       type: String,
-      require: true,
+      required: true,
     },
     expiresAt: {
       type: Date,

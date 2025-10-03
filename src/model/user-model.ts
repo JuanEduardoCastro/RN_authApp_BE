@@ -15,30 +15,29 @@ const userSchema = new mongoose.Schema(
     },
     email: {
       type: String,
-      require: true,
+      required: true,
       unique: true,
       lowercase: true,
+      trim: true,
+      match: [/\S+@\S+\.\S+/, "is invalid"],
     },
     password: {
       type: String,
-      require: true,
+      required: function (this: IUser) {
+        // Make password required only if not a social login
+        return !this.provider;
+      },
       trim: true,
-    },
-    isGoogleLogin: {
-      type: Boolean,
-      default: false,
-    },
-    isGitHubLogin: {
-      type: Boolean,
-      default: false,
-    },
-    isAppleLogin: {
-      type: Boolean,
-      default: false,
+      select: false, // <-- Prevent password from being returned in queries
     },
     lastName: {
       type: String,
       default: "",
+    },
+    provider: {
+      type: String,
+      enum: ["google", "github", "apple", null], // Allow null for email/password auth
+      default: null,
     },
     phoneNumber: {
       type: phoneNumberSchema,
@@ -50,7 +49,7 @@ const userSchema = new mongoose.Schema(
     },
     avatarURL: {
       type: String,
-      default: undefined,
+      default: null,
     },
     roles: {
       type: [String],

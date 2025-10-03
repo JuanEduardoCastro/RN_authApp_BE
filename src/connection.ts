@@ -1,20 +1,32 @@
-import mongoose from "mongoose";
-import * as dotenv from "dotenv";
+import { MongoClient } from "mongodb";
 
-const connectDB = async () => {
+const URI = process.env.SECRET_DB;
+
+if (!URI) {
+  throw new Error("MONGO_URI not found in environment vars!");
+}
+
+export const client = new MongoClient(URI);
+let isConnected = false;
+
+export const connectToDB = async () => {
+  if (isConnected) {
+    console.log("++ --> DB ALREADY CLIENT CONNECTED <-- ++");
+    return client;
+  }
+
   try {
-    // const connnection = await mongoose.connect(URI);
-    const connnection = await mongoose.connect(
-      `mongodb+srv://jcvenepro:${process.env.SECRET_DB}@cluster0.f6e7p3i.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`
-    );
-    if (connnection) {
-      console.log("++ --> DB CONNECTED <-- ++");
-    }
+    await client.connect();
+    isConnected = true;
+    console.log("++ --> DB NEW CLIENT CONNECTED <-- ++");
+    return client;
   } catch (error) {
-    console.log("XX -> connection.ts:6 -> connectDB -> error:", error);
+    console.log("XX -> connection.ts:6 -> connectToDB -> error:", error);
+    throw error;
   }
 };
 
-export default connectDB;
-
-/* WnuAi1esHXDgFCm0 - jcvenepro */
+process.on("SIGINT", async () => {
+  await client.close();
+  process.exit(0);
+});

@@ -1,13 +1,17 @@
 import { NextFunction, Request, Response } from "express";
-import jwt from "jsonwebtoken";
-import { RefreshToken, TempToken } from "../model/refreshToken-model";
+import jwt, { JwtPayload } from "jsonwebtoken";
+import { config } from "../config";
 
 declare module "express-serve-static-core" {
   interface Request {
-    tokenVerified: string;
-    token: string;
+    tokenVerified: JwtPayload | string;
+    token?: string;
   }
 }
+
+const extractToken = (req: Request): string | undefined => {
+  return req.headers.authorization?.split(" ")[1];
+};
 
 /* Validate refreshToken from app */
 
@@ -17,26 +21,18 @@ export const validateRefreshTokenMiddleware = async (
   next: NextFunction
 ): Promise<any> => {
   try {
-    const token = req.headers.authorization?.split(" ")[1];
+    const token = extractToken(req);
     if (!token) {
-      return res.status(403).json({ error: "Access token is required." });
-    }
-    if (!process.env.RTOKEN_SECRET_KEY) {
-      throw new Error("Secret key is not valid.");
+      res.status(401).json({ error: "Refresh token is required." });
+      return;
     }
 
-    jwt.verify(token, process.env.RTOKEN_SECRET_KEY as string, (error, tokenVerified) => {
-      if (error) {
-        return res.status(401).json({ error: "The token is invalid or expired." });
-      }
-      req.tokenVerified = JSON.stringify(tokenVerified);
-      req.token = token;
-      next();
-    });
-
-    // next();
+    const tokenVerified = jwt.verify(token, config.RTOKEN_SECRET_KEY);
+    req.tokenVerified = tokenVerified;
+    req.token = token;
+    next();
   } catch (error) {
-    throw error;
+    next(error);
   }
 };
 
@@ -44,28 +40,20 @@ export const validateEmailTokenMiddleware = async (
   req: Request,
   res: Response,
   next: NextFunction
-): Promise<any> => {
+) => {
   try {
-    const token = req.headers.authorization?.split(" ")[1];
-
+    const token = extractToken(req);
     if (!token) {
-      return res.status(403).json({ error: "Email token is required." });
-    }
-    if (!process.env.ATOKEN_SECRET_KEY) {
-      throw new Error("Secret key is not valid.");
+      res.status(401).json({ error: "Email token is required." });
+      return;
     }
 
-    jwt.verify(token, process.env.GMAIL_TOKEN_SECRET_KEY as string, (error, tokenVerified) => {
-      if (error) {
-        return res.status(401).json({ error: "The token is invalid or expired." });
-      }
-
-      req.tokenVerified = JSON.stringify(tokenVerified);
-      req.token = token;
-      next();
-    });
+    const tokenVerified = jwt.verify(token, config.GMAIL_TOKEN_SECRET_KEY);
+    req.tokenVerified = tokenVerified;
+    req.token = token;
+    next();
   } catch (error) {
-    throw error;
+    next(error);
   }
 };
 
@@ -73,23 +61,18 @@ export const validateAccessTokenMiddleware = async (
   req: Request,
   res: Response,
   next: NextFunction
-): Promise<any> => {
+) => {
   try {
-    const token = req.headers.authorization?.split(" ")[1];
+    const token = extractToken(req);
     if (!token) {
-      return res.status(403).json({ error: "Access token is required." });
+      res.status(401).json({ error: "Access token is required." });
+      return;
     }
-    if (!process.env.ATOKEN_SECRET_KEY) {
-      throw new Error("Secret key is not valid.");
-    }
-    jwt.verify(token, process.env.ATOKEN_SECRET_KEY as string, (error, tokenVerified) => {
-      if (error) {
-        return res.status(401).json({ error: "The token is invalid or expired." });
-      }
-      req.tokenVerified = JSON.stringify(tokenVerified);
-      next();
-    });
+    const tokenVerified = jwt.verify(token, config.ATOKEN_SECRET_KEY);
+    req.tokenVerified = tokenVerified;
+    req.token = token; // Also attach the token itself for consistency
+    next();
   } catch (error) {
-    throw error;
+    next(error);
   }
 };

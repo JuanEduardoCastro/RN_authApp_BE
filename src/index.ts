@@ -1,27 +1,33 @@
+import "dotenv/config";
 import express, { Request, Response } from "express";
 import cors from "cors";
-import connectDB from "./connection";
+import { connectToDB } from "./connection";
 import userRoutes from "./routes/user.route";
-import "dotenv/config";
 import testRoutes from "./routes/test.routes";
 
-const app = express();
+const startServer = async () => {
+  const app = express();
 
-app.use(express.json());
-app.use(cors());
+  app.use(express.json());
+  app.use(cors());
 
-const PORT = process.env.PORT || 3005;
+  const PORT = process.env.PORT || 3005;
 
-connectDB();
+  await connectToDB();
 
-app.get("/test", (req: Request, res: Response) => {
-  console.log("Test OK");
-  res.send("Test OK");
-});
+  app.get("/health", (_req: Request, res: Response) => {
+    res.status(200).send("Server is healthy");
+  });
 
-app.use("/users", userRoutes);
-app.use("/tests", testRoutes);
+  app.use("/users", userRoutes);
+  app.use("/tests", testRoutes);
 
-app.listen(PORT, () => {
-  console.log(`** server running on port ${PORT} **`);
+  app.listen(PORT, () => {
+    console.log(`** Server running on port ${PORT} **`);
+  });
+};
+
+startServer().catch((error) => {
+  console.error("XX -> Failed to start server:", error);
+  process.exit(1);
 });

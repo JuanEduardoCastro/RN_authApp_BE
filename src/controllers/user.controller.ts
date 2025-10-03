@@ -1,5 +1,6 @@
 import bcrypt from "bcrypt";
-import { Request, Response } from "express";
+import { NextFunction, Request, Response } from "express";
+import { validationResult } from "express-validator";
 import User from "../model/user-model";
 import { IUser } from "../types/types";
 import { sendEmailValidation, sendResetPasswordValidation } from "../services/emailServices";
@@ -10,9 +11,21 @@ import {
 } from "./refreshToken.controller";
 import { RefreshToken, TempToken } from "../model/refreshToken-model";
 
+const toUserResponse = (user: IUser) => ({
+  id: user._id,
+  firstName: user.firstName,
+  email: user.email,
+  lastName: user.lastName,
+  phoneNumber: user.phoneNumber,
+  occupation: user.occupation,
+  provider: user.provider,
+  avatarURL: user.avatarURL,
+  roles: user.roles,
+});
+
 /* Validate user token with middleware */
 
-export const validateNewAccessToken = async (req: Request, res: Response) => {
+export const validateNewAccessToken = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const token = req.token;
 
@@ -25,135 +38,87 @@ export const validateNewAccessToken = async (req: Request, res: Response) => {
     if (!existingUser) {
       res.status(404).send({ error: "User not found" });
       return;
-    } else {
-      const accessToken = createNewAccessToken(
-        existingUser._id,
-        existingUser.isGoogleLogin,
-        existingUser.isGitHubLogin,
-        existingUser.isAppleLogin
-      );
-      if (accessToken) {
-        res.status(200).send({
-          accessToken,
-          user: {
-            firstName: existingUser.firstName,
-            email: existingUser.email,
-            lastName: existingUser.lastName,
-            phoneNumber: existingUser.phoneNumber,
-            occupation: existingUser.occupation,
-            isGoogleLogin: existingUser.isGoogleLogin,
-            isGitHubLogin: existingUser.isGitHubLogin,
-            isAppleLogin: existingUser.isAppleLogin,
-            avatarURL: existingUser.avatarURL,
-            createdAt: existingUser.createdAt,
-            updatedAt: existingUser.updatedAt,
-          },
-        });
-        return;
-      }
     }
+
+    const accessToken = createNewAccessToken(existingUser._id, existingUser.provider!);
+
+    res.status(200).send({
+      accessToken,
+      user: toUserResponse(existingUser),
+    });
+    return;
   } catch (error) {
-    throw error;
+    next(error);
   }
 };
 
 /* Login a user with credentials */
 
-export const loginUser = async (req: Request, res: Response) => {
+export const loginUser = async (req: Request, res: Response, next: NextFunction) => {
   try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      res.status(400).json({ errors: errors.array() });
+      return;
+    }
+
     const { email, password }: IUser = req.body;
 
-    const existingUser = await User.findOne({ email });
-    if (!existingUser) {
-      res.status(404).send({ error: "User not found" });
+    const existingUser = await User.findOne({ email }).select("+password");
+    if (!existingUser || !existingUser.password) {
+      res.status(401).send({ error: "Invalid credentials" });
       return;
-    } else {
-      const resCheckOtherSession = await RefreshToken.findOneAndDelete({
-        user: existingUser._id,
-      });
     }
+
+    await RefreshToken.findOneAndDelete({ user: existingUser._id });
 
     const isPasswordVerify = await bcrypt.compare(password, existingUser.password);
 
-    if (isPasswordVerify) {
-      const accessToken = createNewAccessToken(
-        existingUser._id,
-        existingUser.isGoogleLogin,
-        existingUser.isGitHubLogin,
-        existingUser.isAppleLogin
-      );
-      const refreshToken = await createRefreshToken(existingUser);
-      if (refreshToken) {
-        res.status(200).send({
-          refreshToken,
-          accessToken,
-          user: {
-            firstName: existingUser.firstName,
-            email: existingUser.email,
-            lastName: existingUser.lastName,
-            phoneNumber: existingUser.phoneNumber,
-            occupation: existingUser.occupation,
-            isGoogleLogin: existingUser.isGoogleLogin,
-            isGitHubLogin: existingUser.isGitHubLogin,
-            isAppleLogin: existingUser.isAppleLogin,
-            avatarURL: existingUser.avatarURL,
-            createdAt: existingUser.createdAt,
-            updatedAt: existingUser.updatedAt,
-          },
-        });
-        return;
-      }
-    } else {
-      res.status(401).send({ error: "Wrong credentials" });
+    if (!isPasswordVerify) {
+      res.status(401).send({ error: "Invalid credentials" });
       return;
     }
+
+    const accessToken = createNewAccessToken(existingUser._id, existingUser.provider!);
+    const refreshToken = await createRefreshToken(existingUser);
+
+    res.status(200).send({
+      refreshToken,
+      accessToken,
+      user: toUserResponse(existingUser),
+    });
+    return;
   } catch (error) {
-    throw error;
+    next(error);
   }
 };
 
 /* Edit profile of a user by id */
 
-export const editUser = async (req: Request, res: Response) => {
+export const editUser = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { id } = req.params;
-    const editData = req.body;
-    const tokenDecoded = req.tokenVerified;
+    const { firstName, lastName, occupation, phoneNumber } = req.body;
 
-    const existingUser = await User.findByIdAndUpdate({ _id: id }, editData, {
-      returnOriginal: false,
+    const allowedUpdates = { firstName, lastName, occupation, phoneNumber };
+
+    const updatedUser = await User.findByIdAndUpdate({ _id: id }, allowedUpdates, {
+      new: true,
     });
-    if (!existingUser) {
+    if (!updatedUser) {
       res.status(404).send({ error: "User not found" });
       return;
     }
 
-    if (existingUser) {
-      const accessToken = createNewAccessToken(
-        existingUser._id,
-        existingUser.isGoogleLogin,
-        existingUser.isGitHubLogin,
-        existingUser.isAppleLogin
-      );
-      res.status(201).send({
-        message: "User edited successfully",
-        accessToken,
-        user: {
-          firstName: existingUser.firstName,
-          email: existingUser.email,
-          lastName: existingUser.lastName,
-          phoneNumber: existingUser.phoneNumber,
-          occupation: existingUser.occupation,
-          isGoogleLogin: existingUser.isGoogleLogin,
-          isGitHubLogin: existingUser.isGitHubLogin,
-          isAppleLogin: existingUser.isAppleLogin,
-          avatarURL: existingUser.avatarURL,
-        },
-      });
-      return;
-    }
+    const accessToken = createNewAccessToken(updatedUser._id, updatedUser.provider!);
+    res.status(200).send({
+      message: "User edited successfully",
+      accessToken,
+      user: toUserResponse(updatedUser),
+    });
+    return;
   } catch (error) {
-    throw error;
+    next(error);
   }
 };
 
@@ -161,19 +126,19 @@ export const editUser = async (req: Request, res: Response) => {
 
 /* Check if email exists */
 
-export const checkEmail = async (req: Request, res: Response) => {
+export const checkEmail = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { email, isGoogleLogin } = req.body;
+    const { email, provider } = req.body;
 
     const checkEmail = await User.findOne({ email });
     if (checkEmail) {
-      res.status(204).send({ message: "This email already exists." });
+      res.status(409).send({ message: "This email is already registered." });
       return;
     }
 
     const isNew = true;
     const emailToken = await createEmailToken(email, isNew);
-    if (!isGoogleLogin) {
+    if (!provider) {
       sendEmailValidation(emailToken, email);
     }
 
@@ -185,14 +150,20 @@ export const checkEmail = async (req: Request, res: Response) => {
     });
     return;
   } catch (error) {
-    throw error;
+    next(error);
   }
 };
 
 /* Create a new user */
 
-export const createUser = async (req: Request, res: Response) => {
+export const createUser = async (req: Request, res: Response, next: NextFunction) => {
   try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      res.status(400).json({ errors: errors.array() });
+      return;
+    }
+
     const token = req.token;
     if (token) {
       const checkTempToken = await TempToken.findOneAndDelete({ ttokken: token });
@@ -202,22 +173,12 @@ export const createUser = async (req: Request, res: Response) => {
       }
     }
 
-    const {
-      firstName,
-      email,
-      password,
-      lastName,
-      isGoogleLogin,
-      isGitHubLogin,
-      isAppleLogin,
-      phoneNumber,
-      occupation,
-      avatarURL,
-    } = req.body;
+    const { firstName, email, password, lastName, provider, phoneNumber, occupation, avatarURL } =
+      req.body;
 
     const existingUser = await User.findOne({ email });
     if (existingUser) {
-      res.status(409).send({ error: "User already exist." });
+      res.status(409).send({ error: "User already exists." });
       return;
     }
 
@@ -228,9 +189,7 @@ export const createUser = async (req: Request, res: Response) => {
       password: hashPassword,
       firstName,
       lastName,
-      isGoogleLogin,
-      isGitHubLogin,
-      isAppleLogin,
+      provider,
       phoneNumber,
       occupation,
       avatarURL,
@@ -238,22 +197,22 @@ export const createUser = async (req: Request, res: Response) => {
 
     if (user) {
       res.status(201).send({ message: "User created successfully" });
+      return;
     }
-    return;
   } catch (error) {
-    throw error;
+    next(error);
   }
 };
 
 /* Reset password */
 
-export const resetPassword = async (req: Request, res: Response) => {
+export const resetPassword = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { email, isGoogleLogin } = req.body;
+    const { email } = req.body;
 
     const checkEmail = await User.findOne({ email });
     if (!checkEmail) {
-      res.status(409).send({ error: "User doesn't exist." });
+      res.status(404).send({ error: "User not found." });
       return;
     }
     const id = checkEmail._id;
@@ -269,14 +228,20 @@ export const resetPassword = async (req: Request, res: Response) => {
     });
     return;
   } catch (error) {
-    throw error;
+    next(error);
   }
 };
 
 /* Update new password of a user by id */
 
-export const updatePssUser = async (req: Request, res: Response) => {
+export const updatePssUser = async (req: Request, res: Response, next: NextFunction) => {
   try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      res.status(400).json({ errors: errors.array() });
+      return;
+    }
+
     const tokenVerified = req.tokenVerified;
     const token = req.token;
 
@@ -298,11 +263,11 @@ export const updatePssUser = async (req: Request, res: Response) => {
       { _id: id },
       { password: hashPassword },
       {
-        returnOriginal: false,
+        new: true,
       }
     );
     if (!existingUser) {
-      res.status(409).send({ message: "User not found" });
+      res.status(404).send({ message: "User not found" });
       return;
     }
 
@@ -313,32 +278,31 @@ export const updatePssUser = async (req: Request, res: Response) => {
     });
     return;
   } catch (error) {
-    throw error;
+    next(error);
   }
 };
 
 /* Logout user */
 
-export const logoutUser = async (req: Request, res: Response) => {
+export const logoutUser = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { email } = req.body;
-    const token = req.headers.authorization?.split(" ")[1];
+    const { email } = req.body; // Or get user ID from a verified access token
 
     const existingUser = await User.findOne({ email });
     if (!existingUser) {
-      res.status(409).send({ message: "There is an issue with the user email" });
+      res.status(200).send({ message: "User logged out successfully" });
       return;
     }
 
     const existingRefreshToken = await RefreshToken.findOneAndDelete({ user: existingUser._id });
     if (existingRefreshToken) {
-      res.status(200).send({ message: "User logout successfully" });
+      res.status(200).send({ message: "User logged out successfully" });
       return;
     } else {
-      res.status(403).send({ message: "Something went wrong" });
+      res.status(200).send({ message: "No active session found to log out" });
       return;
     }
   } catch (error) {
-    throw error;
+    next(error);
   }
 };
