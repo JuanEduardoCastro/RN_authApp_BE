@@ -242,7 +242,7 @@ export const updatePssUser = async (req: Request, res: Response, next: NextFunct
       return;
     }
 
-    const tokenVerified = req.tokenVerified;
+    // const tokenVerified = req.tokenVerified;
     const token = req.token;
 
     if (token) {
@@ -271,7 +271,7 @@ export const updatePssUser = async (req: Request, res: Response, next: NextFunct
       return;
     }
 
-    const deleteTempToken = await TempToken.findOneAndDelete({ ttokken: token });
+    // const deleteTempToken = await TempToken.findOneAndDelete({ ttokken: token });
 
     res.status(201).send({
       message: "Password updated successfully",
