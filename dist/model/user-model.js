@@ -16,30 +16,28 @@ const userSchema = new mongoose_1.default.Schema({
     },
     email: {
         type: String,
-        require: true,
+        required: true,
         unique: true,
         lowercase: true,
+        trim: true,
+        match: [/\S+@\S+\.\S+/, "is invalid"],
     },
     password: {
         type: String,
-        require: true,
+        required: function () {
+            return !this.provider;
+        },
         trim: true,
-    },
-    isGoogleLogin: {
-        type: Boolean,
-        default: false,
-    },
-    isGitHubLogin: {
-        type: Boolean,
-        default: false,
-    },
-    isAppleLogin: {
-        type: Boolean,
-        default: false,
+        select: false,
     },
     lastName: {
         type: String,
         default: "",
+    },
+    provider: {
+        type: String,
+        enum: ["google", "github", "apple", null],
+        default: null,
     },
     phoneNumber: {
         type: phoneNumberSchema,
@@ -51,7 +49,7 @@ const userSchema = new mongoose_1.default.Schema({
     },
     avatarURL: {
         type: String,
-        default: undefined,
+        default: null,
     },
     roles: {
         type: [String],

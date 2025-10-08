@@ -24,11 +24,10 @@ const userSchema = new mongoose.Schema(
     password: {
       type: String,
       required: function (this: IUser) {
-        // Make password required only if not a social login
         return !this.provider;
       },
       trim: true,
-      select: false, // <-- Prevent password from being returned in queries
+      select: false,
     },
     lastName: {
       type: String,
@@ -36,7 +35,7 @@ const userSchema = new mongoose.Schema(
     },
     provider: {
       type: String,
-      enum: ["google", "github", "apple", null], // Allow null for email/password auth
+      enum: ["google", "github", "apple", null],
       default: null,
     },
     phoneNumber: {

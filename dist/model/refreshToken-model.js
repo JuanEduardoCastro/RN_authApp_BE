@@ -8,12 +8,12 @@ const mongoose_1 = __importDefault(require("mongoose"));
 const refreshTokenSchema = new mongoose_1.default.Schema({
     rtokken: {
         type: String,
-        require: true,
+        required: true,
     },
     user: {
         type: mongoose_1.default.Schema.Types.ObjectId,
         ref: "User",
-        require: true,
+        required: true,
     },
     expiresAt: {
         type: Date,
@@ -25,7 +25,7 @@ exports.RefreshToken = mongoose_1.default.model("RefreshToken", refreshTokenSche
 const tempTokenSchema = new mongoose_1.default.Schema({
     ttokken: {
         type: String,
-        require: true,
+        required: true,
     },
     expiresAt: {
         type: Date,

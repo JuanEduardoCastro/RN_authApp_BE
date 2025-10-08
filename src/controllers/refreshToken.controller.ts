@@ -52,7 +52,8 @@ export const createRefreshToken = async (user: IUser) => {
 export const createNewAccessToken = (_id: string | Types.ObjectId, provider: IProvider | null) => {
   const accessToken = jwt.sign({ _id, provider }, config.ATOKEN_SECRET_KEY, {
     algorithm: "HS256",
-    expiresIn: 1200, // 20 minutes
+    // expiresIn: 1200, // 20 minutes
+    expiresIn: 86400, // 24 hours
   });
 
   if (!accessToken) {

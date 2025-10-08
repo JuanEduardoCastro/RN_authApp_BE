@@ -17,7 +17,6 @@ export const config = {
   ATOKEN_SECRET_KEY: getEnv("ATOKEN_SECRET_KEY"),
   GMAIL_USER: getEnv("GMAIL_USER"),
   SECRET_KEY_GMAIL: getEnv("SECRET_KEY_GMAIL"),
-  // Add other required variables here, for example:
   // GMAIL_TOKEN_ISSUER: getEnv("GMAIL_TOKEN_ISSUER"),
   // RTOKEN_ISSUER: getEnv("RTOKEN_ISSUER"),
 };

@@ -1,165 +1,125 @@
 "use strict";
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.logoutUser = exports.updatePssUser = exports.resetPassword = exports.createUser = exports.checkEmail = exports.editUser = exports.loginUser = exports.validateNewAccessToken = void 0;
 const bcrypt_1 = __importDefault(require("bcrypt"));
+const express_validator_1 = require("express-validator");
 const user_model_1 = __importDefault(require("../model/user-model"));
 const emailServices_1 = require("../services/emailServices");
 const refreshToken_controller_1 = require("./refreshToken.controller");
 const refreshToken_model_1 = require("../model/refreshToken-model");
+const toUserResponse = (user) => ({
+    id: user._id,
+    firstName: user.firstName,
+    email: user.email,
+    lastName: user.lastName,
+    phoneNumber: user.phoneNumber,
+    occupation: user.occupation,
+    provider: user.provider,
+    avatarURL: user.avatarURL,
+    roles: user.roles,
+});
 /* Validate user token with middleware */
-const validateNewAccessToken = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+const validateNewAccessToken = async (req, res, next) => {
     try {
         const token = req.token;
-        const existingRefreshToken = yield refreshToken_model_1.RefreshToken.findOne({ rtokken: token }).populate("user");
+        const existingRefreshToken = await refreshToken_model_1.RefreshToken.findOne({ rtokken: token }).populate("user");
         if (!existingRefreshToken) {
             res.status(401).send({ error: "Token expires. User have to send credentials." });
             return;
         }
-        const existingUser = yield user_model_1.default.findOne({ _id: existingRefreshToken.user });
+        const existingUser = await user_model_1.default.findOne({ _id: existingRefreshToken.user });
         if (!existingUser) {
             res.status(404).send({ error: "User not found" });
             return;
         }
-        else {
-            const accessToken = (0, refreshToken_controller_1.createNewAccessToken)(existingUser._id, existingUser.isGoogleLogin, existingUser.isGitHubLogin, existingUser.isAppleLogin);
-            if (accessToken) {
-                res.status(200).send({
-                    accessToken,
-                    user: {
-                        firstName: existingUser.firstName,
-                        email: existingUser.email,
-                        lastName: existingUser.lastName,
-                        phoneNumber: existingUser.phoneNumber,
-                        occupation: existingUser.occupation,
-                        isGoogleLogin: existingUser.isGoogleLogin,
-                        isGitHubLogin: existingUser.isGitHubLogin,
-                        isAppleLogin: existingUser.isAppleLogin,
-                        avatarURL: existingUser.avatarURL,
-                        createdAt: existingUser.createdAt,
-                        updatedAt: existingUser.updatedAt,
-                    },
-                });
-                return;
-            }
-        }
+        const accessToken = (0, refreshToken_controller_1.createNewAccessToken)(existingUser._id, existingUser.provider);
+        res.status(200).send({
+            accessToken,
+            user: toUserResponse(existingUser),
+        });
+        return;
     }
     catch (error) {
-        throw error;
+        next(error);
     }
-});
+};
 exports.validateNewAccessToken = validateNewAccessToken;
 /* Login a user with credentials */
-const loginUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+const loginUser = async (req, res, next) => {
     try {
+        const errors = (0, express_validator_1.validationResult)(req);
+        if (!errors.isEmpty()) {
+            res.status(400).json({ errors: errors.array() });
+            return;
+        }
         const { email, password } = req.body;
-        const existingUser = yield user_model_1.default.findOne({ email });
-        if (!existingUser) {
-            res.status(404).send({ error: "User not found" });
+        const existingUser = await user_model_1.default.findOne({ email }).select("+password");
+        if (!existingUser || !existingUser.password) {
+            res.status(401).send({ error: "Invalid credentials" });
             return;
         }
-        else {
-            const resCheckOtherSession = yield refreshToken_model_1.RefreshToken.findOneAndDelete({
-                user: existingUser._id,
-            });
-        }
-        const isPasswordVerify = yield bcrypt_1.default.compare(password, existingUser.password);
-        if (isPasswordVerify) {
-            const accessToken = (0, refreshToken_controller_1.createNewAccessToken)(existingUser._id, existingUser.isGoogleLogin, existingUser.isGitHubLogin, existingUser.isAppleLogin);
-            const refreshToken = yield (0, refreshToken_controller_1.createRefreshToken)(existingUser);
-            if (refreshToken) {
-                res.status(200).send({
-                    refreshToken,
-                    accessToken,
-                    user: {
-                        firstName: existingUser.firstName,
-                        email: existingUser.email,
-                        lastName: existingUser.lastName,
-                        phoneNumber: existingUser.phoneNumber,
-                        occupation: existingUser.occupation,
-                        isGoogleLogin: existingUser.isGoogleLogin,
-                        isGitHubLogin: existingUser.isGitHubLogin,
-                        isAppleLogin: existingUser.isAppleLogin,
-                        avatarURL: existingUser.avatarURL,
-                        createdAt: existingUser.createdAt,
-                        updatedAt: existingUser.updatedAt,
-                    },
-                });
-                return;
-            }
-        }
-        else {
-            res.status(401).send({ error: "Wrong credentials" });
+        await refreshToken_model_1.RefreshToken.findOneAndDelete({ user: existingUser._id });
+        const isPasswordVerify = await bcrypt_1.default.compare(password, existingUser.password);
+        if (!isPasswordVerify) {
+            res.status(401).send({ error: "Invalid credentials" });
             return;
         }
+        const accessToken = (0, refreshToken_controller_1.createNewAccessToken)(existingUser._id, existingUser.provider);
+        const refreshToken = await (0, refreshToken_controller_1.createRefreshToken)(existingUser);
+        res.status(200).send({
+            refreshToken,
+            accessToken,
+            user: toUserResponse(existingUser),
+        });
+        return;
     }
     catch (error) {
-        throw error;
+        next(error);
     }
-});
+};
 exports.loginUser = loginUser;
 /* Edit profile of a user by id */
-const editUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+const editUser = async (req, res, next) => {
     try {
         const { id } = req.params;
-        const editData = req.body;
-        const tokenDecoded = req.tokenVerified;
-        const existingUser = yield user_model_1.default.findByIdAndUpdate({ _id: id }, editData, {
-            returnOriginal: false,
+        const { firstName, lastName, occupation, phoneNumber } = req.body;
+        const allowedUpdates = { firstName, lastName, occupation, phoneNumber };
+        const updatedUser = await user_model_1.default.findByIdAndUpdate({ _id: id }, allowedUpdates, {
+            new: true,
         });
-        if (!existingUser) {
+        if (!updatedUser) {
             res.status(404).send({ error: "User not found" });
             return;
         }
-        if (existingUser) {
-            const accessToken = (0, refreshToken_controller_1.createNewAccessToken)(existingUser._id, existingUser.isGoogleLogin, existingUser.isGitHubLogin, existingUser.isAppleLogin);
-            res.status(201).send({
-                message: "User edited successfully",
-                accessToken,
-                user: {
-                    firstName: existingUser.firstName,
-                    email: existingUser.email,
-                    lastName: existingUser.lastName,
-                    phoneNumber: existingUser.phoneNumber,
-                    occupation: existingUser.occupation,
-                    isGoogleLogin: existingUser.isGoogleLogin,
-                    isGitHubLogin: existingUser.isGitHubLogin,
-                    isAppleLogin: existingUser.isAppleLogin,
-                    avatarURL: existingUser.avatarURL,
-                },
-            });
-            return;
-        }
+        const accessToken = (0, refreshToken_controller_1.createNewAccessToken)(updatedUser._id, updatedUser.provider);
+        res.status(200).send({
+            message: "User edited successfully",
+            accessToken,
+            user: toUserResponse(updatedUser),
+        });
+        return;
     }
     catch (error) {
-        throw error;
+        next(error);
     }
-});
+};
 exports.editUser = editUser;
 /* ------------------------------------ */
 /* Check if email exists */
-const checkEmail = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+const checkEmail = async (req, res, next) => {
     try {
-        const { email, isGoogleLogin } = req.body;
-        const checkEmail = yield user_model_1.default.findOne({ email });
+        const { email, provider } = req.body;
+        const checkEmail = await user_model_1.default.findOne({ email });
         if (checkEmail) {
-            res.status(204).send({ message: "This email already exists." });
+            res.status(409).send({ message: "This email is already registered." });
             return;
         }
         const isNew = true;
-        const emailToken = yield (0, refreshToken_controller_1.createEmailToken)(email, isNew);
-        if (!isGoogleLogin) {
+        const emailToken = await (0, refreshToken_controller_1.createEmailToken)(email, isNew);
+        if (!provider) {
             (0, emailServices_1.sendEmailValidation)(emailToken, email);
         }
         res.status(200).send({
@@ -171,62 +131,65 @@ const checkEmail = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
         return;
     }
     catch (error) {
-        throw error;
+        next(error);
     }
-});
+};
 exports.checkEmail = checkEmail;
 /* Create a new user */
-const createUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+const createUser = async (req, res, next) => {
     try {
+        const errors = (0, express_validator_1.validationResult)(req);
+        if (!errors.isEmpty()) {
+            res.status(400).json({ errors: errors.array() });
+            return;
+        }
         const token = req.token;
         if (token) {
-            const checkTempToken = yield refreshToken_model_1.TempToken.findOneAndDelete({ ttokken: token });
+            const checkTempToken = await refreshToken_model_1.TempToken.findOneAndDelete({ ttokken: token });
             if (!checkTempToken) {
                 res.status(403).json({ error: "The token is invalid or expired." });
                 return;
             }
         }
-        const { firstName, email, password, lastName, isGoogleLogin, isGitHubLogin, isAppleLogin, phoneNumber, occupation, avatarURL, } = req.body;
-        const existingUser = yield user_model_1.default.findOne({ email });
+        const { firstName, email, password, lastName, provider, phoneNumber, occupation, avatarURL } = req.body;
+        const existingUser = await user_model_1.default.findOne({ email });
         if (existingUser) {
-            res.status(409).send({ error: "User already exist." });
+            res.status(409).send({ error: "User already exists." });
             return;
         }
-        const hashPassword = yield bcrypt_1.default.hash(password, 12);
-        const user = yield user_model_1.default.create({
+        const hashPassword = await bcrypt_1.default.hash(password, 12);
+        const user = await user_model_1.default.create({
             email: email,
             password: hashPassword,
             firstName,
             lastName,
-            isGoogleLogin,
-            isGitHubLogin,
-            isAppleLogin,
+            provider,
             phoneNumber,
             occupation,
             avatarURL,
         });
         if (user) {
             res.status(201).send({ message: "User created successfully" });
+            return;
         }
-        return;
     }
     catch (error) {
-        throw error;
+        next(error);
     }
-});
+};
 exports.createUser = createUser;
 /* Reset password */
-const resetPassword = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+const resetPassword = async (req, res, next) => {
     try {
-        const { email, isGoogleLogin } = req.body;
-        const checkEmail = yield user_model_1.default.findOne({ email });
+        const { email } = req.body;
+        const checkEmail = await user_model_1.default.findOne({ email });
         if (!checkEmail) {
-            res.status(409).send({ error: "User doesn't exist." });
+            res.status(404).send({ error: "User not found." });
             return;
         }
         const id = checkEmail._id;
         const isNew = false;
-        const emailToken = yield (0, refreshToken_controller_1.createEmailToken)(email, isNew, id);
+        const emailToken = await (0, refreshToken_controller_1.createEmailToken)(email, isNew, id);
         if (emailToken) {
             (0, emailServices_1.sendResetPasswordValidation)(emailToken, email);
         }
@@ -238,17 +201,22 @@ const resetPassword = (req, res) => __awaiter(void 0, void 0, void 0, function* 
         return;
     }
     catch (error) {
-        throw error;
+        next(error);
     }
-});
+};
 exports.resetPassword = resetPassword;
 /* Update new password of a user by id */
-const updatePssUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+const updatePssUser = async (req, res, next) => {
     try {
-        const tokenVerified = req.tokenVerified;
+        const errors = (0, express_validator_1.validationResult)(req);
+        if (!errors.isEmpty()) {
+            res.status(400).json({ errors: errors.array() });
+            return;
+        }
+        // const tokenVerified = req.tokenVerified;
         const token = req.token;
         if (token) {
-            const checkTempToken = yield refreshToken_model_1.TempToken.findOne({ ttokken: token });
+            const checkTempToken = await refreshToken_model_1.TempToken.findOne({ ttokken: token });
             if (!checkTempToken) {
                 res.status(403).json({ error: "The token is invalid or expired." });
                 return;
@@ -256,49 +224,47 @@ const updatePssUser = (req, res) => __awaiter(void 0, void 0, void 0, function* 
         }
         const { id } = req.params;
         const editData = req.body;
-        const hashPassword = yield bcrypt_1.default.hash(editData.password, 12);
-        const existingUser = yield user_model_1.default.findByIdAndUpdate({ _id: id }, { password: hashPassword }, {
-            returnOriginal: false,
+        const hashPassword = await bcrypt_1.default.hash(editData.password, 12);
+        const existingUser = await user_model_1.default.findByIdAndUpdate({ _id: id }, { password: hashPassword }, {
+            new: true,
         });
         if (!existingUser) {
-            res.status(409).send({ message: "User not found" });
+            res.status(404).send({ message: "User not found" });
             return;
         }
-        const deleteTempToken = yield refreshToken_model_1.TempToken.findOneAndDelete({ ttokken: token });
+        // const deleteTempToken = await TempToken.findOneAndDelete({ ttokken: token });
         res.status(201).send({
             message: "Password updated successfully",
         });
         return;
     }
     catch (error) {
-        throw error;
+        next(error);
     }
-});
+};
 exports.updatePssUser = updatePssUser;
 /* Logout user */
-const logoutUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a;
+const logoutUser = async (req, res, next) => {
     try {
-        const { email } = req.body;
-        const token = (_a = req.headers.authorization) === null || _a === void 0 ? void 0 : _a.split(" ")[1];
-        const existingUser = yield user_model_1.default.findOne({ email });
+        const { email } = req.body; // Or get user ID from a verified access token
+        const existingUser = await user_model_1.default.findOne({ email });
         if (!existingUser) {
-            res.status(409).send({ message: "There is an issue with the user email" });
+            res.status(200).send({ message: "User logged out successfully" });
             return;
         }
-        const existingRefreshToken = yield refreshToken_model_1.RefreshToken.findOneAndDelete({ user: existingUser._id });
+        const existingRefreshToken = await refreshToken_model_1.RefreshToken.findOneAndDelete({ user: existingUser._id });
         if (existingRefreshToken) {
-            res.status(200).send({ message: "User logout successfully" });
+            res.status(200).send({ message: "User logged out successfully" });
             return;
         }
         else {
-            res.status(403).send({ message: "Something went wrong" });
+            res.status(200).send({ message: "No active session found to log out" });
             return;
         }
     }
     catch (error) {
-        throw error;
+        next(error);
     }
-});
+};
 exports.logoutUser = logoutUser;
 //# sourceMappingURL=user.controller.js.map
