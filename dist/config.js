@@ -12,7 +12,7 @@ function getEnv(key) {
 exports.config = {
     NODE_ENV: process.env.NODE_ENV || "development",
     PORT: process.env.PORT ? parseInt(process.env.PORT, 10) : 3005,
-    SECRET_DB: getEnv("SECRET_DB"),
+    MONGO_DB: getEnv("MONGO_DB"),
     RTOKEN_SECRET_KEY: getEnv("RTOKEN_SECRET_KEY"),
     GMAIL_TOKEN_SECRET_KEY: getEnv("GMAIL_TOKEN_SECRET_KEY"),
     ATOKEN_SECRET_KEY: getEnv("ATOKEN_SECRET_KEY"),

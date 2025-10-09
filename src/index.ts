@@ -1,7 +1,7 @@
 import "dotenv/config";
 import express, { Request, Response } from "express";
 import cors from "cors";
-import { connectToDB } from "./connection";
+import { connectDB } from "./connection";
 import userRoutes from "./routes/user.route";
 import testRoutes from "./routes/test.routes";
 
@@ -13,7 +13,7 @@ const startServer = async () => {
 
   const PORT = process.env.PORT || 3005;
 
-  await connectToDB();
+  await connectDB();
 
   app.get("/health", (_req: Request, res: Response) => {
     res.status(200).send("Server is healthy");

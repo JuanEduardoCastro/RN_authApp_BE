@@ -14,7 +14,7 @@ const startServer = async () => {
     app.use(express_1.default.json());
     app.use((0, cors_1.default)());
     const PORT = process.env.PORT || 3005;
-    await (0, connection_1.connectToDB)();
+    await (0, connection_1.connectDB)();
     app.get("/health", (_req, res) => {
         res.status(200).send("Server is healthy");
     });

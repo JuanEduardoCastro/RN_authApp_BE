@@ -63,7 +63,6 @@ export const loginUser = async (req: Request, res: Response, next: NextFunction)
     }
 
     const { email, password }: IUser = req.body;
-
     const existingUser = await User.findOne({ email }).select("+password");
     if (!existingUser || !existingUser.password) {
       res.status(401).send({ error: "Invalid credentials" });

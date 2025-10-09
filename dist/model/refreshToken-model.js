@@ -30,7 +30,7 @@ const tempTokenSchema = new mongoose_1.default.Schema({
     expiresAt: {
         type: Date,
         default: Date.now,
-        expires: 180, // 3 minutes
+        expires: 300, // 3 minutes
     },
 }, { timestamps: true });
 exports.TempToken = mongoose_1.default.model("TempToken", tempTokenSchema);

@@ -14,7 +14,7 @@ userRoutes.post("/login", (0, express_validator_1.body)("email").isEmail().norma
 userRoutes.post("/logout", user_controller_1.logoutUser);
 userRoutes.post("/token/refresh", middleware_1.validateRefreshTokenMiddleware, user_controller_1.validateNewAccessToken);
 // --- User Management Routes ---
-userRoutes.post("/", middleware_1.validateEmailTokenMiddleware, (0, express_validator_1.body)("email").isEmail().normalizeEmail(), (0, express_validator_1.body)("password").isLength({ min: 6 }), user_controller_1.createUser);
+userRoutes.post("/create", middleware_1.validateEmailTokenMiddleware, (0, express_validator_1.body)("email").isEmail().normalizeEmail(), (0, express_validator_1.body)("password").isLength({ min: 6 }), user_controller_1.createUser);
 userRoutes.patch("/:id", middleware_1.validateAccessTokenMiddleware, user_controller_1.editUser);
 // --- Password & Email Validation Routes ---
 userRoutes.post("/check-email", user_controller_1.checkEmail);

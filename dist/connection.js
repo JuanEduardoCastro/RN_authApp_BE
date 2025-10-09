@@ -1,32 +1,41 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.connectToDB = exports.client = void 0;
-const mongodb_1 = require("mongodb");
-const URI = process.env.SECRET_DB;
+exports.connectDB = void 0;
+const mongoose_1 = __importDefault(require("mongoose"));
+const URI = process.env.MONGO_DB;
 if (!URI) {
     throw new Error("MONGO_URI not found in environment vars!");
 }
-exports.client = new mongodb_1.MongoClient(URI);
-let isConnected = false;
-const connectToDB = async () => {
-    if (isConnected) {
-        console.log("++ --> DB ALREADY CLIENT CONNECTED <-- ++");
-        return exports.client;
-    }
-    try {
-        await exports.client.connect();
-        isConnected = true;
-        console.log("++ --> DB NEW CLIENT CONNECTED <-- ++");
-        return exports.client;
-    }
-    catch (error) {
-        console.log("XX -> connection.ts:6 -> connectToDB -> error:", error);
-        throw error;
-    }
+mongoose_1.default.Promise = global.Promise;
+const connect = mongoose_1.default.connection;
+mongoose_1.default.set("strictQuery", true);
+const connectDB = async () => {
+    connect.on("connected", async () => {
+        console.log("++ --> DB CONNECTED <-- ++");
+    });
+    connect.on("reconnected", async () => {
+        console.log("++ --> DB RECONNECTED <-- ++");
+    });
+    connect.on("disconnected", async () => {
+        console.log("++ --> DB DISCONNECTED <-- ++");
+        console.log("Trying to reconnect to Mongo...");
+        setTimeout(() => {
+            mongoose_1.default.connect(URI, {
+                socketTimeoutMS: 3000,
+                connectTimeoutMS: 3000,
+            });
+        }, 3005);
+    });
+    connect.on("close", async () => {
+        console.log("++ --> DB CLOSED <-- ++");
+    });
+    connect.on("error", async (error) => {
+        console.log("++ --> DB ERROR <-- ++", error);
+    });
+    await mongoose_1.default.connect(URI).catch((error) => console.log(error));
 };
-exports.connectToDB = connectToDB;
-process.on("SIGINT", async () => {
-    await exports.client.close();
-    process.exit(0);
-});
+exports.connectDB = connectDB;
 //# sourceMappingURL=connection.js.map

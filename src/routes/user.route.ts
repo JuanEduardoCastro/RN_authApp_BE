@@ -26,7 +26,7 @@ userRoutes.post("/token/refresh", validateRefreshTokenMiddleware, validateNewAcc
 
 // --- User Management Routes ---
 userRoutes.post(
-  "/",
+  "/create",
   validateEmailTokenMiddleware,
   body("email").isEmail().normalizeEmail(),
   body("password").isLength({ min: 6 }),
