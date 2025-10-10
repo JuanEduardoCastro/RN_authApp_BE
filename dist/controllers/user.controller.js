@@ -25,7 +25,9 @@ const toUserResponse = (user) => ({
 const validateNewAccessToken = async (req, res, next) => {
     try {
         const token = req.token;
+        console.log("XX -> user.controller.ts:31 -> validateNewAccessToken -> token :", token);
         const existingRefreshToken = await refreshToken_model_1.RefreshToken.findOne({ rtokken: token }).populate("user");
+        console.log("XX -> user.controller.ts:34 -> validateNewAccessToken -> existingRefreshToken :", existingRefreshToken);
         if (!existingRefreshToken) {
             res.status(401).send({ error: "Token expires. User have to send credentials." });
             return;
