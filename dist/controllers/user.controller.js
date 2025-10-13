@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.logoutUser = exports.updatePssUser = exports.resetPassword = exports.createUser = exports.checkEmail = exports.editUser = exports.loginUser = exports.validateNewAccessToken = void 0;
+exports.logoutUser = exports.updatePssUser = exports.resetPassword = exports.createUser = exports.checkEmailWithProvider = exports.checkEmail = exports.editUser = exports.loginUser = exports.validateNewAccessToken = void 0;
 const bcrypt_1 = __importDefault(require("bcrypt"));
 const express_validator_1 = require("express-validator");
 const user_model_1 = __importDefault(require("../model/user-model"));
@@ -25,9 +25,7 @@ const toUserResponse = (user) => ({
 const validateNewAccessToken = async (req, res, next) => {
     try {
         const token = req.token;
-        console.log("XX -> user.controller.ts:31 -> validateNewAccessToken -> token :", token);
         const existingRefreshToken = await refreshToken_model_1.RefreshToken.findOne({ rtokken: token }).populate("user");
-        console.log("XX -> user.controller.ts:34 -> validateNewAccessToken -> existingRefreshToken :", existingRefreshToken);
         if (!existingRefreshToken) {
             res.status(401).send({ error: "Token expires. User have to send credentials." });
             return;
@@ -114,9 +112,9 @@ exports.editUser = editUser;
 const checkEmail = async (req, res, next) => {
     try {
         const { email, provider } = req.body;
-        const checkEmail = await user_model_1.default.findOne({ email });
-        if (checkEmail) {
-            res.status(409).send({ message: "This email is already registered." });
+        const checkEmail = await user_model_1.default.findOne({ email: email });
+        if (checkEmail !== null) {
+            res.status(204).send({ message: "This email is already registered." });
             return;
         }
         const isNew = true;
@@ -137,6 +135,33 @@ const checkEmail = async (req, res, next) => {
     }
 };
 exports.checkEmail = checkEmail;
+/* Check email with provider */
+const checkEmailWithProvider = async (req, res, next) => {
+    try {
+        const { email, provider } = req.body;
+        if (!provider) {
+            res.status(409).send({ message: "There is no provider to check user with." });
+        }
+        const checkEmail = await user_model_1.default.findOne({ email: email });
+        if (provider === "google") {
+            if (checkEmail !== null) {
+                const isNew = false;
+                const emailToken = await (0, refreshToken_controller_1.createEmailToken)(email, isNew);
+                res.status(204).send({ message: "Login user.", emailToken: emailToken });
+                return;
+            }
+            else {
+                const isNew = true;
+                const emailToken = await (0, refreshToken_controller_1.createEmailToken)(email, isNew);
+                res.status(200).send({ message: "Create user.", emailToken: emailToken });
+            }
+        }
+    }
+    catch (error) {
+        next(error);
+    }
+};
+exports.checkEmailWithProvider = checkEmailWithProvider;
 /* Create a new user */
 const createUser = async (req, res, next) => {
     try {

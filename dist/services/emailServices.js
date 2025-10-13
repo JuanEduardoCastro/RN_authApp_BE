@@ -31,7 +31,7 @@ const createAuthEmail = (to, subject, token) => {
         bcc: "authorization.demo.app@gmail.com",
         subject,
         text: "Plaintext version of the message", // update this
-        html: `<p>Please, click this link to confirm your email: <a target="_blank" style="background-color:#199319;color:white;padding:12px;text-decoration:none;" href="authapp://app/new-password/${token}">Confirm email</a></p>`,
+        html: `<p>Please, click this link to confirm your email: <a target="_blank" style="background-color:#199319;color:white;padding:12px;margin:0px10px;text-decoration:none;" href="authapp://app/new-password/${token}">Confirm email</a></p>`,
     };
 };
 const sendEmailValidation = async (token, email) => {

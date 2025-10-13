@@ -28,13 +28,9 @@ const toUserResponse = (user: IUser) => ({
 export const validateNewAccessToken = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const token = req.token;
-    console.log("XX -> user.controller.ts:31 -> validateNewAccessToken -> token :", token);
 
     const existingRefreshToken = await RefreshToken.findOne({ rtokken: token }).populate("user");
-    console.log(
-      "XX -> user.controller.ts:34 -> validateNewAccessToken -> existingRefreshToken :",
-      existingRefreshToken
-    );
+
     if (!existingRefreshToken) {
       res.status(401).send({ error: "Token expires. User have to send credentials." });
       return;
@@ -133,19 +129,16 @@ export const editUser = async (req: Request, res: Response, next: NextFunction) 
 export const checkEmail = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { email, provider } = req.body;
-
-    const checkEmail = await User.findOne({ email });
-    if (checkEmail) {
-      res.status(409).send({ message: "This email is already registered." });
+    const checkEmail = await User.findOne({ email: email });
+    if (checkEmail !== null) {
+      res.status(204).send({ message: "This email is already registered." });
       return;
     }
-
     const isNew = true;
     const emailToken = await createEmailToken(email, isNew);
     if (!provider) {
       sendEmailValidation(emailToken, email);
     }
-
     res.status(200).send({
       message: "This email is available to create a new user",
       emailToken: emailToken,
@@ -158,11 +151,41 @@ export const checkEmail = async (req: Request, res: Response, next: NextFunction
   }
 };
 
+/* Check email with provider */
+
+export const checkEmailWithProvider = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { email, provider } = req.body;
+
+    if (!provider) {
+      res.status(409).send({ message: "There is no provider to check user with." });
+    }
+
+    const checkEmail = await User.findOne({ email: email });
+
+    if (provider === "google") {
+      if (checkEmail !== null) {
+        const isNew = false;
+        const emailToken = await createEmailToken(email, isNew);
+        res.status(204).send({ message: "Login user.", emailToken: emailToken });
+        return;
+      } else {
+        const isNew = true;
+        const emailToken = await createEmailToken(email, isNew);
+        res.status(200).send({ message: "Create user.", emailToken: emailToken });
+      }
+    }
+  } catch (error) {
+    next(error);
+  }
+};
+
 /* Create a new user */
 
 export const createUser = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const errors = validationResult(req);
+
     if (!errors.isEmpty()) {
       res.status(400).json({ errors: errors.array() });
       return;
