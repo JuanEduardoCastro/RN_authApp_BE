@@ -11,7 +11,7 @@ const startServer = async () => {
   app.use(express.json());
   app.use(cors());
 
-  const PORT = process.env.PORT || 3005;
+  const PORT = process.env.PORT || 3000;
 
   await connectDB();
 
