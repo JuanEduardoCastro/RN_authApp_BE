@@ -11,7 +11,9 @@ type MailOptions = {
 };
 
 const transporter = nodemailer.createTransport({
-  service: "gmail",
+  host: "smtp.gmail.com",
+  port: 587,
+  secure: false,
   auth: {
     user: config.GMAIL_USER,
     pass: config.SECRET_KEY_GMAIL,
