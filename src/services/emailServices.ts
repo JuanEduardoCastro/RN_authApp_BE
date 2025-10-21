@@ -10,13 +10,24 @@ type MailOptions = {
   html: string;
 };
 
+// This is the transporter for Gmail account
+// const transporter = nodemailer.createTransport({
+//   host: "smtp.gmail.com",
+//   port: 587,
+//   secure: false,
+//   auth: {
+//     user: config.GMAIL_USER,
+//     pass: config.SECRET_KEY_GMAIL,
+//   },
+// });
+
 const transporter = nodemailer.createTransport({
-  host: "smtp.gmail.com",
+  host: "smtp-relay.brevo.com",
   port: 587,
   secure: false,
   auth: {
-    user: config.GMAIL_USER,
-    pass: config.SECRET_KEY_GMAIL,
+    user: config.BREVO_LOGIN,
+    pass: config.BREVO_SECRET_KEY,
   },
 });
 
