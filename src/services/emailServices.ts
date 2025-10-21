@@ -23,8 +23,8 @@ type MailOptions = {
 
 const transporter = nodemailer.createTransport({
   host: "smtp-relay.brevo.com",
-  port: 587,
-  secure: false,
+  port: 465,
+  secure: true,
   auth: {
     user: config.BREVO_LOGIN,
     pass: config.BREVO_SECRET_KEY,

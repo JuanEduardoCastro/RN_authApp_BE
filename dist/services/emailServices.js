@@ -18,8 +18,8 @@ const config_1 = require("../config");
 // });
 const transporter = nodemailer_1.default.createTransport({
     host: "smtp-relay.brevo.com",
-    port: 587,
-    secure: false,
+    port: 465,
+    secure: true,
     auth: {
         user: config_1.config.BREVO_LOGIN,
         pass: config_1.config.BREVO_SECRET_KEY,
