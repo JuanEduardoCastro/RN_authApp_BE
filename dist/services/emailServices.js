@@ -8,6 +8,8 @@ const nodemailer_1 = __importDefault(require("nodemailer"));
 const config_1 = require("../config");
 const transporter = nodemailer_1.default.createTransport({
     service: "gmail",
+    port: 465, // 465 for SSL/TLS - - 587 for STARTTLS
+    secure: true, // true if port 465 - - false if port 587
     auth: {
         user: config_1.config.GMAIL_USER,
         pass: config_1.config.SECRET_KEY_GMAIL,
