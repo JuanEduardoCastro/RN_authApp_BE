@@ -11,6 +11,7 @@ type MailOptions = {
 };
 
 const transporter = nodemailer.createTransport({
+  host: "smtp.gmail.com",
   service: "gmail",
   port: 587, // 465 for SSL/TLS - - 587 for STARTTLS
   secure: false, // true if port 465 - - false if port 587
