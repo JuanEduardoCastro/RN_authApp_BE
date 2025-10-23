@@ -88,7 +88,7 @@ const createBrevoEmail = (to: string, subject: string, token: string) => {
               <tr>
                 <td style="padding: 40px; font-family: Arial, sans-serif; font-size: 16px; line-height: 24px; color: #333333;" class="content">  
                   <p style="margin: 0 0 15px 0; font-weight: bold;">Hello,</p>                     
-                  <p style="margin: 0 0 15px 0;">${details.bodyText}}</p>
+                  <p style="margin: 0 0 15px 0;">${details.bodyText}</p>
                   <table border="0" cellpadding="0" cellspacing="0" style="margin: 30px 0; width: 100%;">
                     <tr>
                       <td align="center">
