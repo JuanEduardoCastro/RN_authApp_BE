@@ -9,10 +9,7 @@ import {
   createRefreshToken,
 } from "./refreshToken.controller";
 import { RefreshToken, TempToken } from "../model/refreshToken-model";
-import {
-  sendBrevoEmailValidation,
-  sendBrevoResetPasswordValidation,
-} from "../services/brevoServices";
+import { sendEmailValidation, sendResetPasswordValidation } from "../services/emailServices";
 
 const toUserResponse = (user: IUser) => ({
   id: user._id,
@@ -140,8 +137,8 @@ export const checkEmail = async (req: Request, res: Response, next: NextFunction
     const isNew = true;
     const emailToken = await createEmailToken(email, isNew);
     if (!provider) {
-      sendBrevoEmailValidation(emailToken, email);
-      // sendEmailValidation(emailToken, email);
+      // sendBrevoEmailValidation(emailToken, email);
+      sendEmailValidation(emailToken, email);
     }
     res.status(200).send({
       message: "This email is available to create a new user",
@@ -250,8 +247,8 @@ export const resetPassword = async (req: Request, res: Response, next: NextFunct
     const isNew = false;
     const emailToken = await createEmailToken(email, isNew, id);
     if (emailToken) {
-      sendBrevoResetPasswordValidation(emailToken, email);
-      // sendResetPasswordValidation(emailToken, email);
+      // sendBrevoResetPasswordValidation(emailToken, email);
+      sendResetPasswordValidation(emailToken, email);
     }
     res.status(200).send({
       message: "User can reset password",

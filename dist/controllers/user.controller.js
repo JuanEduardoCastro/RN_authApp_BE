@@ -9,7 +9,7 @@ const express_validator_1 = require("express-validator");
 const user_model_1 = __importDefault(require("../model/user-model"));
 const refreshToken_controller_1 = require("./refreshToken.controller");
 const refreshToken_model_1 = require("../model/refreshToken-model");
-const brevoServices_1 = require("../services/brevoServices");
+const emailServices_1 = require("../services/emailServices");
 const toUserResponse = (user) => ({
     id: user._id,
     firstName: user.firstName,
@@ -120,8 +120,8 @@ const checkEmail = async (req, res, next) => {
         const isNew = true;
         const emailToken = await (0, refreshToken_controller_1.createEmailToken)(email, isNew);
         if (!provider) {
-            (0, brevoServices_1.sendBrevoEmailValidation)(emailToken, email);
-            // sendEmailValidation(emailToken, email);
+            // sendBrevoEmailValidation(emailToken, email);
+            (0, emailServices_1.sendEmailValidation)(emailToken, email);
         }
         res.status(200).send({
             message: "This email is available to create a new user",
@@ -219,8 +219,8 @@ const resetPassword = async (req, res, next) => {
         const isNew = false;
         const emailToken = await (0, refreshToken_controller_1.createEmailToken)(email, isNew, id);
         if (emailToken) {
-            (0, brevoServices_1.sendBrevoResetPasswordValidation)(emailToken, email);
-            // sendResetPasswordValidation(emailToken, email);
+            // sendBrevoResetPasswordValidation(emailToken, email);
+            (0, emailServices_1.sendResetPasswordValidation)(emailToken, email);
         }
         res.status(200).send({
             message: "User can reset password",
