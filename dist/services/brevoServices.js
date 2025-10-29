@@ -90,7 +90,8 @@ const createBrevoEmail = (to, subject, token) => {
                   <table border="0" cellpadding="0" cellspacing="0" style="margin: 30px 0; width: 100%;">
                     <tr>
                       <td align="center">
-                        <a href="https://authapps3-universal-link.s3-website-us-east-1.amazonaws.com/app/new-password/${token}" target="_blank" 
+                        <a href="https://d2wi1nboge7qqt.cloudfront.net/app/new-password/${token}" target="_blank" 
+                        clicktracking="off"
                           style="
                               background-color: #${details.buttonColor}; 
                               border: 1px solid #1B1B1E; 
