@@ -100,7 +100,7 @@ const createGridEmail = (to: string, subject: string, token: string) => {
                     <tr>
                       <td align="center">
                         <a href="https://d2wi1nboge7qqt.cloudfront.net/app/new-password/${token}" target="_blank" 
-                        clicktracking="off"
+                        clicktracking=off
                           style="
                               background-color: #${details.buttonColor}; 
                               border: 1px solid #1B1B1E; 
