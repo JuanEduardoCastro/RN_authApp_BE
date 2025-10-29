@@ -1,43 +1,11 @@
 "use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.sendResetPasswordValidation = exports.sendEmailValidation = void 0;
-const nodemailer_1 = __importDefault(require("nodemailer"));
+exports.sendGridResetPasswordValidation = exports.sendGridEmailValidation = void 0;
 const config_1 = require("../config");
-// This is the transporter for Gmail account
-const transporter = nodemailer_1.default.createTransport({
-    host: "smtp.gmail.com",
-    port: 587,
-    secure: false,
-    auth: {
-        user: config_1.config.GMAIL_USER,
-        pass: config_1.config.SECRET_KEY_GMAIL,
-    },
-});
-// This is the transporter for Brevo account ?
-// const transporter = nodemailer.createTransport({
-//   host: "smtp-relay.brevo.com",
-//   port: 465,
-//   secure: true,
-//   auth: {
-//     user: config.BREVO_LOGIN,
-//     pass: config.BREVO_SECRET_KEY,
-//   },
-// });
-const sendMail = async (mailOptions) => {
-    try {
-        const info = await transporter.sendMail(mailOptions);
-        console.log("Email sent: " + info.response);
-        return info;
-    }
-    catch (error) {
-        console.error("Error sending email", error);
-        throw error;
-    }
-};
-const createAuthEmail = (to, subject, token) => {
+const sgMail = require("@sendgrid/mail");
+sgMail.setApiKey(config_1.config.SENDGRID_API_KEY);
+/* -------------------------- */
+const createGridEmail = (to, subject, token) => {
     let details = {
         title: "",
         bodyText: "",
@@ -64,13 +32,12 @@ const createAuthEmail = (to, subject, token) => {
         };
     }
     return {
-        from: "Auth Sample App <authorization.demo.app@gmail.com>",
+        from: config_1.config.SENDGRID_SENDER_EMAIL,
         to,
-        bcc: "authorization.demo.app@gmail.com",
+        replyTo: config_1.config.SENDGRID_SENDER_EMAIL,
+        bcc: [config_1.config.SENDGRID_SENDER_EMAIL],
         subject,
-        // text: "Plaintext version of the message", // update this
         text: `Please, click this link to confirm your email: `,
-        // html: `<p>Please, click this link to confirm your email: <a target="_blank" style="background-color:#199319;color:white;padding:12px;margin:0px10px;text-decoration:none;" href="authapp://app/new-password/${token}">Confirm email</a></p>`,
         html: `
     <head>
       <meta charset="UTF-8">
@@ -118,11 +85,12 @@ const createAuthEmail = (to, subject, token) => {
               <tr>
                 <td style="padding: 40px; font-family: Arial, sans-serif; font-size: 16px; line-height: 24px; color: #333333;" class="content">  
                   <p style="margin: 0 0 15px 0; font-weight: bold;">Hello,</p>                     
-                  <p style="margin: 0 0 15px 0;">${details.bodyText}}</p>
+                  <p style="margin: 0 0 15px 0;">${details.bodyText}</p>
                   <table border="0" cellpadding="0" cellspacing="0" style="margin: 30px 0; width: 100%;">
                     <tr>
                       <td align="center">
                         <a href="https://d2wi1nboge7qqt.cloudfront.net/app/new-password/${token}" target="_blank" 
+                        clicktracking="off"
                           style="
                               background-color: #${details.buttonColor}; 
                               border: 1px solid #1B1B1E; 
@@ -157,17 +125,32 @@ const createAuthEmail = (to, subject, token) => {
       </table>
     </body>
     `,
+        trackingSettings: {
+            clickTracking: {
+                enable: false,
+                enableText: false,
+            },
+        },
     };
 };
-const sendEmailValidation = async (token, email) => {
-    const mailOptions = createAuthEmail(email, "New account. Please, confirm your email!", token);
-    await sendMail(mailOptions);
+const sendGridMail = async (mailGridOptions) => {
+    try {
+        const info = await sgMail.send(mailGridOptions);
+        console.log(console.log("Email sent: " + info));
+    }
+    catch (error) {
+        console.error("Error sending email", error);
+        throw error;
+    }
 };
-exports.sendEmailValidation = sendEmailValidation;
-const sendResetPasswordValidation = async (token, email) => {
-    const mailOptions = createAuthEmail(email, "Reset password. Please, confirm your email!", token);
-    await sendMail(mailOptions);
+const sendGridEmailValidation = async (token, email) => {
+    const mailGridOptions = createGridEmail(email, "New account. Please, confirm your email!", token);
+    await sendGridMail(mailGridOptions);
 };
-exports.sendResetPasswordValidation = sendResetPasswordValidation;
-/*  <a href="http://authapps3-universal-link.s3-website-us-east-1.amazonaws.com/app/new-password/${token}" target="_blank"  */
-//# sourceMappingURL=emailServices.js.map
+exports.sendGridEmailValidation = sendGridEmailValidation;
+const sendGridResetPasswordValidation = async (token, email) => {
+    const mailGridOptions = createGridEmail(email, "Reset password. Please, confirm your email!", token);
+    await sendGridMail(mailGridOptions);
+};
+exports.sendGridResetPasswordValidation = sendGridResetPasswordValidation;
+//# sourceMappingURL=gridServices.js.map

@@ -9,7 +9,7 @@ import {
   createRefreshToken,
 } from "./refreshToken.controller";
 import { RefreshToken, TempToken } from "../model/refreshToken-model";
-import { sendEmailValidation, sendResetPasswordValidation } from "../services/emailServices";
+import { sendGridEmailValidation, sendGridResetPasswordValidation } from "../services/gridServices";
 
 const toUserResponse = (user: IUser) => ({
   id: user._id,
@@ -138,7 +138,8 @@ export const checkEmail = async (req: Request, res: Response, next: NextFunction
     const emailToken = await createEmailToken(email, isNew);
     if (!provider) {
       // sendBrevoEmailValidation(emailToken, email);
-      sendEmailValidation(emailToken, email);
+      // sendEmailValidation(emailToken, email);
+      sendGridEmailValidation(emailToken, email);
     }
     res.status(200).send({
       message: "This email is available to create a new user",
@@ -248,7 +249,8 @@ export const resetPassword = async (req: Request, res: Response, next: NextFunct
     const emailToken = await createEmailToken(email, isNew, id);
     if (emailToken) {
       // sendBrevoResetPasswordValidation(emailToken, email);
-      sendResetPasswordValidation(emailToken, email);
+      // sendResetPasswordValidation(emailToken, email);
+      sendGridResetPasswordValidation(emailToken, email);
     }
     res.status(200).send({
       message: "User can reset password",

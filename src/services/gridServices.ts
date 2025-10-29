@@ -1,77 +1,54 @@
-"use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
+import { config } from "../config";
+
+const sgMail = require("@sendgrid/mail");
+sgMail.setApiKey(config.SENDGRID_API_KEY);
+
+type GridMailOptions = {
+  to: string;
+  from: string;
+  subject: string;
+  text: string;
+  html: string;
 };
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.sendResetPasswordValidation = exports.sendEmailValidation = void 0;
-const nodemailer_1 = __importDefault(require("nodemailer"));
-const config_1 = require("../config");
-// This is the transporter for Gmail account
-const transporter = nodemailer_1.default.createTransport({
-    host: "smtp.gmail.com",
-    port: 587,
-    secure: false,
-    auth: {
-        user: config_1.config.GMAIL_USER,
-        pass: config_1.config.SECRET_KEY_GMAIL,
-    },
-});
-// This is the transporter for Brevo account ?
-// const transporter = nodemailer.createTransport({
-//   host: "smtp-relay.brevo.com",
-//   port: 465,
-//   secure: true,
-//   auth: {
-//     user: config.BREVO_LOGIN,
-//     pass: config.BREVO_SECRET_KEY,
-//   },
-// });
-const sendMail = async (mailOptions) => {
-    try {
-        const info = await transporter.sendMail(mailOptions);
-        console.log("Email sent: " + info.response);
-        return info;
-    }
-    catch (error) {
-        console.error("Error sending email", error);
-        throw error;
-    }
-};
-const createAuthEmail = (to, subject, token) => {
-    let details = {
-        title: "",
-        bodyText: "",
-        buttonText: "",
-        buttonColor: "",
-        extraText: "",
+
+/* -------------------------- */
+
+const createGridEmail = (to: string, subject: string, token: string) => {
+  let details = {
+    title: "",
+    bodyText: "",
+    buttonText: "",
+    buttonColor: "",
+    extraText: "",
+  };
+  if (subject.includes("password")) {
+    details = {
+      title: "Reset Password!",
+      bodyText:
+        "We received a request to reset the password for your account. If you initiated this request, please click the button below to proceed.",
+      buttonText: "Reset My Password",
+      buttonColor: "e74c3c",
+      extraText: "",
     };
-    if (subject.includes("password")) {
-        details = {
-            title: "Reset Password!",
-            bodyText: "We received a request to reset the password for your account. If you initiated this request, please click the button below to proceed.",
-            buttonText: "Reset My Password",
-            buttonColor: "e74c3c",
-            extraText: "",
-        };
-    }
-    else {
-        details = {
-            title: "Email Confirmation!",
-            bodyText: "Thank you for signing up! To complete your registration and activate your new account, please click the button below to confirm your email address.",
-            buttonText: "Confirm My Email",
-            buttonColor: "7646c9",
-            extraText: "This only takes a moment and will secure your access to all features.",
-        };
-    }
-    return {
-        from: "Auth Sample App <authorization.demo.app@gmail.com>",
-        to,
-        bcc: "authorization.demo.app@gmail.com",
-        subject,
-        // text: "Plaintext version of the message", // update this
-        text: `Please, click this link to confirm your email: `,
-        // html: `<p>Please, click this link to confirm your email: <a target="_blank" style="background-color:#199319;color:white;padding:12px;margin:0px10px;text-decoration:none;" href="authapp://app/new-password/${token}">Confirm email</a></p>`,
-        html: `
+  } else {
+    details = {
+      title: "Email Confirmation!",
+      bodyText:
+        "Thank you for signing up! To complete your registration and activate your new account, please click the button below to confirm your email address.",
+      buttonText: "Confirm My Email",
+      buttonColor: "7646c9",
+      extraText: "This only takes a moment and will secure your access to all features.",
+    };
+  }
+
+  return {
+    from: config.SENDGRID_SENDER_EMAIL,
+    to,
+    replyTo: config.SENDGRID_SENDER_EMAIL,
+    bcc: [config.SENDGRID_SENDER_EMAIL],
+    subject,
+    text: `Please, click this link to confirm your email: `,
+    html: `
     <head>
       <meta charset="UTF-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -118,11 +95,12 @@ const createAuthEmail = (to, subject, token) => {
               <tr>
                 <td style="padding: 40px; font-family: Arial, sans-serif; font-size: 16px; line-height: 24px; color: #333333;" class="content">  
                   <p style="margin: 0 0 15px 0; font-weight: bold;">Hello,</p>                     
-                  <p style="margin: 0 0 15px 0;">${details.bodyText}}</p>
+                  <p style="margin: 0 0 15px 0;">${details.bodyText}</p>
                   <table border="0" cellpadding="0" cellspacing="0" style="margin: 30px 0; width: 100%;">
                     <tr>
                       <td align="center">
                         <a href="https://d2wi1nboge7qqt.cloudfront.net/app/new-password/${token}" target="_blank" 
+                        clicktracking="off"
                           style="
                               background-color: #${details.buttonColor}; 
                               border: 1px solid #1B1B1E; 
@@ -157,17 +135,35 @@ const createAuthEmail = (to, subject, token) => {
       </table>
     </body>
     `,
-    };
+    trackingSettings: {
+      clickTracking: {
+        enable: false,
+        enableText: false,
+      },
+    },
+  };
 };
-const sendEmailValidation = async (token, email) => {
-    const mailOptions = createAuthEmail(email, "New account. Please, confirm your email!", token);
-    await sendMail(mailOptions);
+
+const sendGridMail = async (mailGridOptions: GridMailOptions) => {
+  try {
+    const info = await sgMail.send(mailGridOptions);
+    console.log(console.log("Email sent: " + info));
+  } catch (error) {
+    console.error("Error sending email", error);
+    throw error;
+  }
 };
-exports.sendEmailValidation = sendEmailValidation;
-const sendResetPasswordValidation = async (token, email) => {
-    const mailOptions = createAuthEmail(email, "Reset password. Please, confirm your email!", token);
-    await sendMail(mailOptions);
+
+export const sendGridEmailValidation = async (token: string, email: string) => {
+  const mailGridOptions = createGridEmail(email, "New account. Please, confirm your email!", token);
+  await sendGridMail(mailGridOptions);
 };
-exports.sendResetPasswordValidation = sendResetPasswordValidation;
-/*  <a href="http://authapps3-universal-link.s3-website-us-east-1.amazonaws.com/app/new-password/${token}" target="_blank"  */
-//# sourceMappingURL=emailServices.js.map
+
+export const sendGridResetPasswordValidation = async (token: string, email: string) => {
+  const mailGridOptions = createGridEmail(
+    email,
+    "Reset password. Please, confirm your email!",
+    token
+  );
+  await sendGridMail(mailGridOptions);
+};

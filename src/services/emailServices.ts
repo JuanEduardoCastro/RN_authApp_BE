@@ -11,25 +11,26 @@ type MailOptions = {
 };
 
 // This is the transporter for Gmail account
-// const transporter = nodemailer.createTransport({
-//   host: "smtp.gmail.com",
-//   port: 587,
-//   secure: false,
-//   auth: {
-//     user: config.GMAIL_USER,
-//     pass: config.SECRET_KEY_GMAIL,
-//   },
-// });
-
 const transporter = nodemailer.createTransport({
-  host: "smtp-relay.brevo.com",
-  port: 465,
-  secure: true,
+  host: "smtp.gmail.com",
+  port: 587,
+  secure: false,
   auth: {
-    user: config.BREVO_LOGIN,
-    pass: config.BREVO_SECRET_KEY,
+    user: config.GMAIL_USER,
+    pass: config.SECRET_KEY_GMAIL,
   },
 });
+
+// This is the transporter for Brevo account ?
+// const transporter = nodemailer.createTransport({
+//   host: "smtp-relay.brevo.com",
+//   port: 465,
+//   secure: true,
+//   auth: {
+//     user: config.BREVO_LOGIN,
+//     pass: config.BREVO_SECRET_KEY,
+//   },
+// });
 
 const sendMail = async (mailOptions: MailOptions) => {
   try {
@@ -129,7 +130,7 @@ const createAuthEmail = (to: string, subject: string, token: string): MailOption
                   <table border="0" cellpadding="0" cellspacing="0" style="margin: 30px 0; width: 100%;">
                     <tr>
                       <td align="center">
-                        <a href="http://authapps3-universal-link.s3-website-us-east-1.amazonaws.com/app/new-password/${token}" target="_blank" 
+                        <a href="https://d2wi1nboge7qqt.cloudfront.net/app/new-password/${token}" target="_blank" 
                           style="
                               background-color: #${details.buttonColor}; 
                               border: 1px solid #1B1B1E; 
@@ -176,3 +177,5 @@ export const sendResetPasswordValidation = async (token: string, email: string) 
   const mailOptions = createAuthEmail(email, "Reset password. Please, confirm your email!", token);
   await sendMail(mailOptions);
 };
+
+/*  <a href="http://authapps3-universal-link.s3-website-us-east-1.amazonaws.com/app/new-password/${token}" target="_blank"  */
