@@ -1,8 +1,7 @@
 import { TransactionalEmailsApi, SendSmtpEmail } from "@getbrevo/brevo";
-import { config } from "../config";
 
 let emailAPI = new TransactionalEmailsApi();
-(emailAPI as any).authentications.apiKey.apiKey = config.BREVO_API_KEY;
+(emailAPI as any).authentications.apiKey.apiKey = "";
 
 let sendSmtpEmail = new SendSmtpEmail();
 

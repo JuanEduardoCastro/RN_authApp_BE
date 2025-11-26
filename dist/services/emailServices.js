@@ -5,15 +5,14 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.sendResetPasswordValidation = exports.sendEmailValidation = void 0;
 const nodemailer_1 = __importDefault(require("nodemailer"));
-const config_1 = require("../config");
 // This is the transporter for Gmail account
 const transporter = nodemailer_1.default.createTransport({
     host: "smtp.gmail.com",
     port: 587,
     secure: false,
     auth: {
-        user: config_1.config.GMAIL_USER,
-        pass: config_1.config.SECRET_KEY_GMAIL,
+        user: "",
+        pass: "",
     },
 });
 // This is the transporter for Brevo account ?

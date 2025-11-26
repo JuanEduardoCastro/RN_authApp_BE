@@ -1,9 +1,12 @@
+if (process.env.NODE_ENV === "development") {
+  require("dotenv").config();
+}
 import mongoose from "mongoose";
 
 const URI = process.env.MONGO_DB;
 
 if (!URI) {
-  throw new Error("MONGO_URI not found in environment vars!");
+  throw new Error("MONGO_DB not found in environment vars!");
 }
 
 mongoose.Promise = global.Promise;

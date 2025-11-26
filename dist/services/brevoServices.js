@@ -2,9 +2,8 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.sendBrevoResetPasswordValidation = exports.sendBrevoEmailValidation = void 0;
 const brevo_1 = require("@getbrevo/brevo");
-const config_1 = require("../config");
 let emailAPI = new brevo_1.TransactionalEmailsApi();
-emailAPI.authentications.apiKey.apiKey = config_1.config.BREVO_API_KEY;
+emailAPI.authentications.apiKey.apiKey = "";
 let sendSmtpEmail = new brevo_1.SendSmtpEmail();
 const createBrevoEmail = (to, subject, token) => {
     let details = {
