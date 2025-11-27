@@ -7,25 +7,24 @@
     "dev": "NODE_ENV=development nodemon --exec ts-node src/index.ts",
     "build": "NODE_ENV=production tsc",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "NODE_ENV=production node ./dist/index.js"
+    "start": "node ./dist/index.js"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
-    "@getbrevo/brevo": "^3.0.1",
     "@sendgrid/mail": "^8.1.6",
     "bcrypt": "^6.0.0",
     "body-parser": "^2.2.0",
     "cors": "^2.8.5",
     "express": "^5.1.0",
     "express-jwt": "^8.5.1",
+    "express-rate-limit": "^8.2.1",
     "express-validator": "^7.2.1",
     "jsonwebtoken": "^9.0.2",
     "mongodb": "^6.16.0",
     "mongoose": "^8.15.1",
-    "nodemailer": "^7.0.5",
     "uuid": "^11.1.0"
   },
   "devDependencies": {
@@ -36,7 +35,6 @@
     "@types/express": "^5.0.2",
     "@types/jsonwebtoken": "^9.0.9",
     "@types/node": "^22.15.24",
-    "@types/nodemailer": "^6.4.17",
     "dotenv": "^16.5.0",
     "nodemon": "^3.1.10",
     "ts-node": "^10.9.2",

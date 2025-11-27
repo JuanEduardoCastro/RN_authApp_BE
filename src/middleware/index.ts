@@ -1,6 +1,5 @@
 import { NextFunction, Request, Response } from "express";
 import jwt, { JwtPayload } from "jsonwebtoken";
-import { config } from "../config";
 
 declare module "express-serve-static-core" {
   interface Request {
@@ -13,7 +12,7 @@ const extractToken = (req: Request): string | undefined => {
   return req.headers.authorization?.split(" ")[1];
 };
 
-/* Validate refreshToken from app */
+/* Validate tokens */
 
 export const validateRefreshTokenMiddleware = async (
   req: Request,
@@ -27,7 +26,7 @@ export const validateRefreshTokenMiddleware = async (
       return;
     }
 
-    const tokenVerified = jwt.verify(token, config.RTOKEN_SECRET_KEY);
+    const tokenVerified = jwt.verify(token, process.env.RTOKEN_SECRET_KEY);
     req.tokenVerified = tokenVerified;
     req.token = token;
     next();
@@ -48,7 +47,7 @@ export const validateEmailTokenMiddleware = async (
       return;
     }
 
-    const tokenVerified = jwt.verify(token, config.GMAIL_TOKEN_SECRET_KEY);
+    const tokenVerified = jwt.verify(token, process.env.GMAIL_TOKEN_SECRET_KEY);
     req.tokenVerified = tokenVerified;
     req.token = token;
     next();
@@ -68,11 +67,39 @@ export const validateAccessTokenMiddleware = async (
       res.status(401).json({ error: "Access token is required." });
       return;
     }
-    const tokenVerified = jwt.verify(token, config.ATOKEN_SECRET_KEY);
+    const tokenVerified = jwt.verify(token, process.env.ATOKEN_SECRET_KEY);
     req.tokenVerified = tokenVerified;
     req.token = token; // Also attach the token itself for consistency
     next();
   } catch (error) {
     next(error);
   }
+};
+
+/* Validate password */
+
+export const validatePasswordMiddleWare = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  const value = req.body.password;
+
+  if (!value) {
+    res.status(400).json({ error: "Password is required." });
+    return;
+  } else if (!/[A-Z]/.test(value)) {
+    res.status(400).json({ error: "Password must contain at least one uppercase letter." });
+    return;
+  } else if (!/[a-z]/.test(value)) {
+    res.status(400).json({ error: "Password must contain at least one lowercase letter." });
+    return;
+  } else if (!/[0-9]/.test(value)) {
+    res.status(400).json({ error: "Password must contain at least one number." });
+    return;
+  } else if (!/[^a-zA-Z0-9]/.test(value)) {
+    res.status(400).json({ error: "Password must contain at least one special character." });
+    return;
+  }
+  next();
 };

@@ -6,9 +6,8 @@ import express, { Request, Response } from "express";
 import cors from "cors";
 import { connectDB } from "./connection";
 import userRoutes from "./routes/user.route";
-import testRoutes from "./routes/test.routes";
+import { checkEnvVars } from "./checkEnvVars";
 
-console.log("----> ", process.env.NODE_ENV);
 const startServer = async () => {
   const app = express();
 
@@ -19,17 +18,18 @@ const startServer = async () => {
 
   await connectDB();
 
-  app.get("/health", (_req: Request, res: Response) => {
-    res.status(200).send("Server is healthy");
+  app.get("/", (_req: Request, res: Response) => {
+    res.status(200).json({ message: "Server is healthy" });
   });
 
   app.use("/users", userRoutes);
-  app.use("/tests", testRoutes);
 
   app.listen(PORT, () => {
     console.log(`** Server running on port ${PORT} **`);
   });
 };
+
+checkEnvVars();
 
 startServer().catch((error) => {
   console.error("XX -> Failed to start server:", error);

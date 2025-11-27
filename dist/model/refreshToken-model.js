@@ -5,8 +5,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.TempToken = exports.RefreshToken = void 0;
 const mongoose_1 = __importDefault(require("mongoose"));
+const tokens_1 = require("../constants/tokens");
 const refreshTokenSchema = new mongoose_1.default.Schema({
-    rtokken: {
+    refreshToken: {
         type: String,
         required: true,
     },
@@ -18,20 +19,23 @@ const refreshTokenSchema = new mongoose_1.default.Schema({
     expiresAt: {
         type: Date,
         default: Date.now,
-        expires: 864000, // 10 days
+        expires: tokens_1.EXPIRY.REFRESH_TOKEN,
     },
 }, { timestamps: true });
 exports.RefreshToken = mongoose_1.default.model("RefreshToken", refreshTokenSchema);
 const tempTokenSchema = new mongoose_1.default.Schema({
-    ttokken: {
+    tempToken: {
         type: String,
         required: true,
     },
     expiresAt: {
         type: Date,
         default: Date.now,
-        expires: 300, // 3 minutes
+        expires: tokens_1.EXPIRY.TEMP_TOKEN,
     },
 }, { timestamps: true });
 exports.TempToken = mongoose_1.default.model("TempToken", tempTokenSchema);
+refreshTokenSchema.index({ refresToken: 1 });
+refreshTokenSchema.index({ user: 1 });
+tempTokenSchema.index({ tempToken: 1 });
 //# sourceMappingURL=refreshToken-model.js.map

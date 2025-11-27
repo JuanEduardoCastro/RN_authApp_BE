@@ -14,13 +14,15 @@ import {
 import {
   validateAccessTokenMiddleware,
   validateEmailTokenMiddleware,
+  validatePasswordMiddleWare,
   validateRefreshTokenMiddleware,
 } from "../middleware";
+import { checkEmailLimiter, loginLimiter, resetPasswordLimiter } from "../middleware/limiters";
 
 const userRoutes: Router = express.Router();
 
 /* --- Authentication Routes --- */
-userRoutes.post("/login", body("email").isEmail(), loginUser);
+userRoutes.post("/login", loginLimiter, body("email").isEmail(), loginUser);
 userRoutes.post("/logout", logoutUser);
 userRoutes.post("/token/refresh", validateRefreshTokenMiddleware, validateNewAccessToken);
 
@@ -28,20 +30,22 @@ userRoutes.post("/token/refresh", validateRefreshTokenMiddleware, validateNewAcc
 userRoutes.post(
   "/create",
   validateEmailTokenMiddleware,
+  validatePasswordMiddleWare,
   body("email").isEmail(),
-  body("password").isLength({ min: 6 }),
+  body("password").isLength({ min: 8 }),
   createUser
 );
 userRoutes.patch("/:id", validateAccessTokenMiddleware, editUser);
 
 /* --- Password & Email Validation Routes --- */
 userRoutes.post("/check-provider", checkEmailWithProvider);
-userRoutes.post("/check-email", checkEmail);
-userRoutes.post("/reset-password", resetPassword);
+userRoutes.post("/check-email", checkEmailLimiter, checkEmail);
+userRoutes.post("/reset-password", resetPasswordLimiter, resetPassword);
 userRoutes.put(
   "/:id/password",
   validateEmailTokenMiddleware,
-  body("password").isLength({ min: 6 }),
+  validatePasswordMiddleWare,
+  body("password").isLength({ min: 8 }),
   updatePssUser
 );
 

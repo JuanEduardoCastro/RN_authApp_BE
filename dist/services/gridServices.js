@@ -1,9 +1,11 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.sendGridResetPasswordValidation = exports.sendGridEmailValidation = void 0;
-const config_1 = require("../config");
-const sgMail = require("@sendgrid/mail");
-sgMail.setApiKey(config_1.config.SENDGRID_API_KEY);
+const mail_1 = __importDefault(require("@sendgrid/mail"));
+mail_1.default.setApiKey(process.env.SENDGRID_API_KEY);
 /* -------------------------- */
 const createGridEmail = (to, subject, token) => {
     let details = {
@@ -32,10 +34,10 @@ const createGridEmail = (to, subject, token) => {
         };
     }
     return {
-        from: config_1.config.SENDGRID_SENDER_EMAIL,
+        from: process.env.SENDGRID_SENDER_EMAIL,
         to,
-        replyTo: config_1.config.SENDGRID_SENDER_EMAIL,
-        bcc: [config_1.config.SENDGRID_SENDER_EMAIL],
+        replyTo: process.env.SENDGRID_SENDER_EMAIL,
+        bcc: [process.env.SENDGRID_SENDER_EMAIL],
         subject,
         text: `Please, click this link to confirm your email: `,
         html: `
@@ -135,8 +137,8 @@ const createGridEmail = (to, subject, token) => {
 };
 const sendGridMail = async (mailGridOptions) => {
     try {
-        const info = await sgMail.send(mailGridOptions);
-        console.log(console.log("Email sent: " + info));
+        const info = await mail_1.default.send(mailGridOptions);
+        console.log("Email sent: " + info);
     }
     catch (error) {
         console.error("Error sending email", error);

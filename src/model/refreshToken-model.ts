@@ -1,9 +1,10 @@
 import mongoose from "mongoose";
 import { IRefreshToken, ITempToken } from "../types/types";
+import { EXPIRY } from "../constants/tokens";
 
 const refreshTokenSchema = new mongoose.Schema(
   {
-    rtokken: {
+    refreshToken: {
       type: String,
       required: true,
     },
@@ -15,27 +16,32 @@ const refreshTokenSchema = new mongoose.Schema(
     expiresAt: {
       type: Date,
       default: Date.now,
-      expires: 864000, // 10 days
+      expires: EXPIRY.REFRESH_TOKEN,
     },
   },
   { timestamps: true }
 );
 
+refreshTokenSchema.index({ refreshToken: 1 });
+refreshTokenSchema.index({ user: 1 });
+
 export const RefreshToken = mongoose.model<IRefreshToken>("RefreshToken", refreshTokenSchema);
 
 const tempTokenSchema = new mongoose.Schema(
   {
-    ttokken: {
+    tempToken: {
       type: String,
       required: true,
     },
     expiresAt: {
       type: Date,
       default: Date.now,
-      expires: 300, // 3 minutes
+      expires: EXPIRY.TEMP_TOKEN,
     },
   },
   { timestamps: true }
 );
+
+tempTokenSchema.index({ tempToken: 1 });
 
 export const TempToken = mongoose.model<ITempToken>("TempToken", tempTokenSchema);

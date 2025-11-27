@@ -25,12 +25,12 @@ export interface IPhoneNumber {
 }
 
 export interface IRefreshToken {
-  rtokken: string;
+  refreshToken: string;
   user: Types.ObjectId;
   createdAt: Date;
 }
 
 export interface ITempToken {
-  ttokken: string;
+  tempToken: string;
   createdAt: Date;
 }

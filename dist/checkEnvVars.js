@@ -1,0 +1,24 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.checkEnvVars = void 0;
+const requiredEnvVars = [
+    "PORT",
+    "NODE_ENV",
+    "MONGO_DB",
+    "ATOKEN_SECRET_KEY",
+    "RTOKEN_SECRET_KEY",
+    "GMAIL_TOKEN_SECRET_KEY",
+    "SENDGRID_API_KEY",
+    "SENDGRID_SENDER_EMAIL",
+];
+const checkEnvVars = () => {
+    const missingVars = requiredEnvVars.filter((i) => !process.env[i]);
+    if (missingVars.length > 0) {
+        console.error(`Missing required environment variables: `);
+        missingVars.forEach((i) => console.error(` -${i}`));
+        console.error("/n Check .env for missing vars");
+        process.exit(1);
+    }
+};
+exports.checkEnvVars = checkEnvVars;
+//# sourceMappingURL=checkEnvVars.js.map

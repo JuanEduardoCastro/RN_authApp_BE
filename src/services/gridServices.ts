@@ -1,7 +1,5 @@
-import { config } from "../config";
-
-const sgMail = require("@sendgrid/mail");
-sgMail.setApiKey(config.SENDGRID_API_KEY);
+import sgMail from "@sendgrid/mail";
+sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
 type GridMailOptions = {
   to: string;
@@ -42,10 +40,10 @@ const createGridEmail = (to: string, subject: string, token: string) => {
   }
 
   return {
-    from: config.SENDGRID_SENDER_EMAIL,
+    from: process.env.SENDGRID_SENDER_EMAIL,
     to,
-    replyTo: config.SENDGRID_SENDER_EMAIL,
-    bcc: [config.SENDGRID_SENDER_EMAIL],
+    replyTo: process.env.SENDGRID_SENDER_EMAIL,
+    bcc: [process.env.SENDGRID_SENDER_EMAIL],
     subject,
     text: `Please, click this link to confirm your email: `,
     html: `
@@ -147,7 +145,7 @@ const createGridEmail = (to: string, subject: string, token: string) => {
 const sendGridMail = async (mailGridOptions: GridMailOptions) => {
   try {
     const info = await sgMail.send(mailGridOptions);
-    console.log(console.log("Email sent: " + info));
+    console.log("Email sent: " + info);
   } catch (error) {
     console.error("Error sending email", error);
     throw error;
