@@ -12,11 +12,16 @@ const extractToken = (req) => {
 const validateRefreshTokenMiddleware = async (req, res, next) => {
     try {
         const token = extractToken(req);
+        const secret = process.env.RTOKEN_SECRET_KEY;
         if (!token) {
             res.status(401).json({ error: "Refresh token is required." });
             return;
         }
-        const tokenVerified = jsonwebtoken_1.default.verify(token, process.env.RTOKEN_SECRET_KEY);
+        if (!secret) {
+            res.status(500).json({ error: "Internal server error" });
+            return;
+        }
+        const tokenVerified = jsonwebtoken_1.default.verify(token, secret);
         req.tokenVerified = tokenVerified;
         req.token = token;
         next();
@@ -29,11 +34,16 @@ exports.validateRefreshTokenMiddleware = validateRefreshTokenMiddleware;
 const validateEmailTokenMiddleware = async (req, res, next) => {
     try {
         const token = extractToken(req);
+        const secret = process.env.GMAIL_TOKEN_SECRET_KEY;
         if (!token) {
             res.status(401).json({ error: "Email token is required." });
             return;
         }
-        const tokenVerified = jsonwebtoken_1.default.verify(token, process.env.GMAIL_TOKEN_SECRET_KEY);
+        if (!secret) {
+            res.status(500).json({ error: "Internal server error" });
+            return;
+        }
+        const tokenVerified = jsonwebtoken_1.default.verify(token, secret);
         req.tokenVerified = tokenVerified;
         req.token = token;
         next();
@@ -46,11 +56,16 @@ exports.validateEmailTokenMiddleware = validateEmailTokenMiddleware;
 const validateAccessTokenMiddleware = async (req, res, next) => {
     try {
         const token = extractToken(req);
+        const secret = process.env.ATOKEN_SECRET_KEY;
         if (!token) {
             res.status(401).json({ error: "Access token is required." });
             return;
         }
-        const tokenVerified = jsonwebtoken_1.default.verify(token, process.env.ATOKEN_SECRET_KEY);
+        if (!secret) {
+            res.status(500).json({ error: "Internal server error" });
+            return;
+        }
+        const tokenVerified = jsonwebtoken_1.default.verify(token, secret);
         req.tokenVerified = tokenVerified;
         req.token = token; // Also attach the token itself for consistency
         next();
@@ -63,24 +78,25 @@ exports.validateAccessTokenMiddleware = validateAccessTokenMiddleware;
 /* Validate password */
 const validatePasswordMiddleWare = async (req, res, next) => {
     const value = req.body.password;
-    switch (value) {
-        case !value:
-            res.status(400).json({ error: "Password is required." });
-            return;
-        case !/[A-Z]/.test(value):
-            res.status(400).json({ error: "Password must contain at least one uppercase letter." });
-            return;
-        case !/[a-z]/.test(value):
-            res.status(400).json({ error: "Password must contain at least one lowercase letter." });
-            return;
-        case !/[0-9]/.test(value):
-            res.status(400).json({ error: "Password must contain at least one number." });
-            return;
-        case !/[^a-zA-Z0-9]/.test(value):
-            res.status(400).json({ error: "Password must contain at least one special character." });
-            return;
-        default:
-            break;
+    if (!value) {
+        res.status(400).json({ error: "Password is required." });
+        return;
+    }
+    else if (!/[A-Z]/.test(value)) {
+        res.status(400).json({ error: "Password must contain at least one uppercase letter." });
+        return;
+    }
+    else if (!/[a-z]/.test(value)) {
+        res.status(400).json({ error: "Password must contain at least one lowercase letter." });
+        return;
+    }
+    else if (!/[0-9]/.test(value)) {
+        res.status(400).json({ error: "Password must contain at least one number." });
+        return;
+    }
+    else if (!/[^a-zA-Z0-9]/.test(value)) {
+        res.status(400).json({ error: "Password must contain at least one special character." });
+        return;
     }
     next();
 };

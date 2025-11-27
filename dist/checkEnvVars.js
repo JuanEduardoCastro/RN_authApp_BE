@@ -2,8 +2,6 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.checkEnvVars = void 0;
 const requiredEnvVars = [
-    "PORT",
-    "NODE_ENV",
     "MONGO_DB",
     "ATOKEN_SECRET_KEY",
     "RTOKEN_SECRET_KEY",
@@ -16,7 +14,7 @@ const checkEnvVars = () => {
     if (missingVars.length > 0) {
         console.error(`Missing required environment variables: `);
         missingVars.forEach((i) => console.error(` -${i}`));
-        console.error("/n Check .env for missing vars");
+        console.error("\n Check .env for missing vars");
         process.exit(1);
     }
 };

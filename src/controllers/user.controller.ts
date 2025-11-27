@@ -29,15 +29,16 @@ export const validateNewAccessToken = async (req: Request, res: Response, next: 
   try {
     const token = req.token;
 
-    const existingRefreshToken = await RefreshToken.findOne({ refreshToken: token }).populate(
-      "user"
-    );
+    const existingRefreshToken = await RefreshToken.findOne({ refreshToken: token }).populate<{
+      user: IUser;
+    }>("user");
 
     if (!existingRefreshToken) {
       res.status(401).json({ error: "Token expires. User have to send credentials." });
       return;
     }
-    const existingUser = await User.findOne({ _id: existingRefreshToken.user });
+
+    const existingUser = existingRefreshToken.user;
     if (!existingUser) {
       res.status(404).json({ error: "User not found" });
       return;
@@ -64,7 +65,7 @@ export const loginUser = async (req: Request, res: Response, next: NextFunction)
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      res.status(400).json({ error: "The is an error to login user.", details: errors.array() });
+      res.status(400).json({ error: "Validation failed.", details: errors.array() });
       return;
     }
 
@@ -106,6 +107,13 @@ export const loginUser = async (req: Request, res: Response, next: NextFunction)
 export const editUser = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { id } = req.params;
+    const { _id }: any = req.tokenVerified;
+
+    if (id !== _id) {
+      res.status(401).json({ error: "Unauthorized" });
+      return;
+    }
+
     const { firstName, lastName, occupation, phoneNumber } = req.body;
 
     const allowedUpdates = { firstName, lastName, occupation, phoneNumber };
@@ -141,7 +149,7 @@ export const checkEmail = async (req: Request, res: Response, next: NextFunction
     const { email, provider } = req.body;
     const checkEmail = await User.findOne({ email: email });
     if (checkEmail !== null) {
-      res.status(204).json({ message: "This email is already registered." });
+      res.status(200).json({ message: "If this email is available, an email will be sent." });
       return;
     }
     const isNew = true;
@@ -150,7 +158,7 @@ export const checkEmail = async (req: Request, res: Response, next: NextFunction
       sendGridEmailValidation(emailToken, email);
     }
     res.status(200).json({
-      message: "This email is available to create a new user",
+      message: "If this email is available, an email will be sent.",
       data: {
         emailToken: emailToken,
         // This "data" is for DEV not PRODUCTION
@@ -212,7 +220,7 @@ export const createUser = async (req: Request, res: Response, next: NextFunction
     const errors = validationResult(req);
 
     if (!errors.isEmpty()) {
-      res.status(400).json({ error: "The is an error creating user.", details: errors.array() });
+      res.status(400).json({ error: "Validation failed.", details: errors.array() });
       return;
     }
 
@@ -264,7 +272,7 @@ export const resetPassword = async (req: Request, res: Response, next: NextFunct
 
     const checkEmail = await User.findOne({ email });
     if (!checkEmail) {
-      res.status(404).json({ error: "User not found." });
+      res.status(200).json({ message: "If this email is available, an email will be sent." });
       return;
     }
     const id = checkEmail._id;
@@ -274,7 +282,7 @@ export const resetPassword = async (req: Request, res: Response, next: NextFunct
       sendGridResetPasswordValidation(emailToken, email);
     }
     res.status(200).json({
-      message: "User can reset password",
+      message: "If this email is available, an email will be sent.",
       data: {
         // This data is for DEV not PRODUCTION
         ...(process.env.NODE_ENV === "development" && {
@@ -293,13 +301,21 @@ export const resetPassword = async (req: Request, res: Response, next: NextFunct
 export const updatePssUser = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const errors = validationResult(req);
+
     if (!errors.isEmpty()) {
-      res.status(400).json({ error: "The is an error updating user.", details: errors.array() });
+      res.status(400).json({ error: "Validation failed.", details: errors.array() });
       return;
     }
 
-    // const tokenVerified = req.tokenVerified;
+    const { _id }: any = req.tokenVerified;
     const token = req.token;
+    const { id } = req.params;
+    const editData = req.body;
+
+    if (id !== _id) {
+      res.status(401).json({ error: "Unauthorized" });
+      return;
+    }
 
     if (token) {
       const checkTempToken = await TempToken.findOne({ tempToken: token });
@@ -309,9 +325,6 @@ export const updatePssUser = async (req: Request, res: Response, next: NextFunct
         return;
       }
     }
-
-    const { id } = req.params;
-    const editData = req.body;
 
     const hashPassword = await bcrypt.hash(editData.password, 12);
 
@@ -326,6 +339,8 @@ export const updatePssUser = async (req: Request, res: Response, next: NextFunct
       res.status(404).json({ error: "User not found" });
       return;
     }
+
+    await RefreshToken.deleteMany({ user: id });
 
     await TempToken.findOneAndDelete({ tempToken: token });
 

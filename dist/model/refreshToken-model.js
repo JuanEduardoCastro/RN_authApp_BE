@@ -22,6 +22,8 @@ const refreshTokenSchema = new mongoose_1.default.Schema({
         expires: tokens_1.EXPIRY.REFRESH_TOKEN,
     },
 }, { timestamps: true });
+refreshTokenSchema.index({ refreshToken: 1 });
+refreshTokenSchema.index({ user: 1 });
 exports.RefreshToken = mongoose_1.default.model("RefreshToken", refreshTokenSchema);
 const tempTokenSchema = new mongoose_1.default.Schema({
     tempToken: {
@@ -34,8 +36,6 @@ const tempTokenSchema = new mongoose_1.default.Schema({
         expires: tokens_1.EXPIRY.TEMP_TOKEN,
     },
 }, { timestamps: true });
-exports.TempToken = mongoose_1.default.model("TempToken", tempTokenSchema);
-refreshTokenSchema.index({ refresToken: 1 });
-refreshTokenSchema.index({ user: 1 });
 tempTokenSchema.index({ tempToken: 1 });
+exports.TempToken = mongoose_1.default.model("TempToken", tempTokenSchema);
 //# sourceMappingURL=refreshToken-model.js.map

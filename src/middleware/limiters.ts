@@ -18,4 +18,22 @@ const checkEmailLimiter = rateLimit({
   message: { error: "Too many email check attempts, please try again later." },
 });
 
-export { loginLimiter, resetPasswordLimiter, checkEmailLimiter };
+const createUserLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, // 1 hour
+  max: 5,
+  message: { error: "Too many account creation attempts, please try again later." },
+});
+
+const tokenRefreshLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 10,
+  message: { error: "Too many token refresh attempts, please try again later." },
+});
+
+export {
+  loginLimiter,
+  resetPasswordLimiter,
+  checkEmailLimiter,
+  createUserLimiter,
+  tokenRefreshLimiter,
+};

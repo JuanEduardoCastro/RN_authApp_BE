@@ -1,6 +1,4 @@
 const requiredEnvVars = [
-  "PORT",
-  "NODE_ENV",
   "MONGO_DB",
   "ATOKEN_SECRET_KEY",
   "RTOKEN_SECRET_KEY",

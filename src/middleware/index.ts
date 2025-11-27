@@ -4,6 +4,7 @@ import jwt, { JwtPayload } from "jsonwebtoken";
 declare module "express-serve-static-core" {
   interface Request {
     tokenVerified: JwtPayload | string;
+    tokenUserId?: string;
     token?: string;
   }
 }
@@ -21,12 +22,19 @@ export const validateRefreshTokenMiddleware = async (
 ): Promise<any> => {
   try {
     const token = extractToken(req);
+    const secret = process.env.RTOKEN_SECRET_KEY;
+
     if (!token) {
       res.status(401).json({ error: "Refresh token is required." });
       return;
     }
 
-    const tokenVerified = jwt.verify(token, process.env.RTOKEN_SECRET_KEY);
+    if (!secret) {
+      res.status(500).json({ error: "Internal server error" });
+      return;
+    }
+
+    const tokenVerified = jwt.verify(token, secret);
     req.tokenVerified = tokenVerified;
     req.token = token;
     next();
@@ -42,12 +50,19 @@ export const validateEmailTokenMiddleware = async (
 ) => {
   try {
     const token = extractToken(req);
+    const secret = process.env.GMAIL_TOKEN_SECRET_KEY;
+
     if (!token) {
       res.status(401).json({ error: "Email token is required." });
       return;
     }
 
-    const tokenVerified = jwt.verify(token, process.env.GMAIL_TOKEN_SECRET_KEY);
+    if (!secret) {
+      res.status(500).json({ error: "Internal server error" });
+      return;
+    }
+
+    const tokenVerified = jwt.verify(token, secret);
     req.tokenVerified = tokenVerified;
     req.token = token;
     next();
@@ -63,11 +78,18 @@ export const validateAccessTokenMiddleware = async (
 ) => {
   try {
     const token = extractToken(req);
+    const secret = process.env.ATOKEN_SECRET_KEY;
     if (!token) {
       res.status(401).json({ error: "Access token is required." });
       return;
     }
-    const tokenVerified = jwt.verify(token, process.env.ATOKEN_SECRET_KEY);
+
+    if (!secret) {
+      res.status(500).json({ error: "Internal server error" });
+      return;
+    }
+
+    const tokenVerified = jwt.verify(token, secret);
     req.tokenVerified = tokenVerified;
     req.token = token; // Also attach the token itself for consistency
     next();

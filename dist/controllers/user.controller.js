@@ -30,7 +30,7 @@ const validateNewAccessToken = async (req, res, next) => {
             res.status(401).json({ error: "Token expires. User have to send credentials." });
             return;
         }
-        const existingUser = await user_model_1.default.findOne({ _id: existingRefreshToken.user });
+        const existingUser = existingRefreshToken.user;
         if (!existingUser) {
             res.status(404).json({ error: "User not found" });
             return;
@@ -55,7 +55,7 @@ const loginUser = async (req, res, next) => {
     try {
         const errors = (0, express_validator_1.validationResult)(req);
         if (!errors.isEmpty()) {
-            res.status(400).json({ error: "The is an error to login user.", details: errors.array() });
+            res.status(400).json({ error: "Validation failed.", details: errors.array() });
             return;
         }
         const { email, password } = req.body;
@@ -91,6 +91,11 @@ exports.loginUser = loginUser;
 const editUser = async (req, res, next) => {
     try {
         const { id } = req.params;
+        const { _id } = req.tokenVerified;
+        if (id !== _id) {
+            res.status(401).json({ error: "Unauthorized" });
+            return;
+        }
         const { firstName, lastName, occupation, phoneNumber } = req.body;
         const allowedUpdates = { firstName, lastName, occupation, phoneNumber };
         const updatedUser = await user_model_1.default.findByIdAndUpdate({ _id: id }, allowedUpdates, {
@@ -122,7 +127,7 @@ const checkEmail = async (req, res, next) => {
         const { email, provider } = req.body;
         const checkEmail = await user_model_1.default.findOne({ email: email });
         if (checkEmail !== null) {
-            res.status(204).json({ message: "This email is already registered." });
+            res.status(200).json({ message: "If this email is available, an email will be sent." });
             return;
         }
         const isNew = true;
@@ -131,7 +136,7 @@ const checkEmail = async (req, res, next) => {
             (0, gridServices_1.sendGridEmailValidation)(emailToken, email);
         }
         res.status(200).json({
-            message: "This email is available to create a new user",
+            message: "If this email is available, an email will be sent.",
             data: {
                 emailToken: emailToken,
                 // This "data" is for DEV not PRODUCTION
@@ -190,7 +195,7 @@ const createUser = async (req, res, next) => {
     try {
         const errors = (0, express_validator_1.validationResult)(req);
         if (!errors.isEmpty()) {
-            res.status(400).json({ error: "The is an error creating user.", details: errors.array() });
+            res.status(400).json({ error: "Validation failed.", details: errors.array() });
             return;
         }
         const token = req.token;
@@ -234,7 +239,7 @@ const resetPassword = async (req, res, next) => {
         const { email } = req.body;
         const checkEmail = await user_model_1.default.findOne({ email });
         if (!checkEmail) {
-            res.status(404).json({ error: "User not found." });
+            res.status(200).json({ message: "If this email is available, an email will be sent." });
             return;
         }
         const id = checkEmail._id;
@@ -244,7 +249,7 @@ const resetPassword = async (req, res, next) => {
             (0, gridServices_1.sendGridResetPasswordValidation)(emailToken, email);
         }
         res.status(200).json({
-            message: "User can reset password",
+            message: "If this email is available, an email will be sent.",
             data: {
                 // This data is for DEV not PRODUCTION
                 ...(process.env.NODE_ENV === "development" && {
@@ -264,11 +269,17 @@ const updatePssUser = async (req, res, next) => {
     try {
         const errors = (0, express_validator_1.validationResult)(req);
         if (!errors.isEmpty()) {
-            res.status(400).json({ error: "The is an error updating user.", details: errors.array() });
+            res.status(400).json({ error: "Validation failed.", details: errors.array() });
             return;
         }
-        // const tokenVerified = req.tokenVerified;
+        const { _id } = req.tokenVerified;
         const token = req.token;
+        const { id } = req.params;
+        const editData = req.body;
+        if (id !== _id) {
+            res.status(401).json({ error: "Unauthorized" });
+            return;
+        }
         if (token) {
             const checkTempToken = await refreshToken_model_1.TempToken.findOne({ tempToken: token });
             if (!checkTempToken) {
@@ -276,8 +287,6 @@ const updatePssUser = async (req, res, next) => {
                 return;
             }
         }
-        const { id } = req.params;
-        const editData = req.body;
         const hashPassword = await bcrypt_1.default.hash(editData.password, 12);
         const existingUser = await user_model_1.default.findByIdAndUpdate({ _id: id }, { password: hashPassword }, {
             new: true,
@@ -286,6 +295,7 @@ const updatePssUser = async (req, res, next) => {
             res.status(404).json({ error: "User not found" });
             return;
         }
+        await refreshToken_model_1.RefreshToken.deleteMany({ user: id });
         await refreshToken_model_1.TempToken.findOneAndDelete({ tempToken: token });
         res.status(201).json({
             message: "Password updated successfully",
