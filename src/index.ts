@@ -11,8 +11,8 @@ import { checkEnvVars } from "./checkEnvVars";
 const startServer = async () => {
   const app = express();
 
-  app.use(cors());
   app.use(express.json({ limit: "10kb" }));
+  app.use(cors());
 
   const PORT = process.env.PORT || 8080;
 

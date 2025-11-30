@@ -13,8 +13,8 @@ const user_route_1 = __importDefault(require("./routes/user.route"));
 const checkEnvVars_1 = require("./checkEnvVars");
 const startServer = async () => {
     const app = (0, express_1.default)();
-    app.use((0, cors_1.default)());
     app.use(express_1.default.json({ limit: "10kb" }));
+    app.use((0, cors_1.default)());
     const PORT = process.env.PORT || 8080;
     await (0, connection_1.connectDB)();
     app.get("/", (_req, res) => {
