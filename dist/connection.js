@@ -4,9 +4,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.connectDB = void 0;
-if (process.env.NODE_ENV === "development") {
-    require("dotenv").config();
-}
+require("dotenv/config");
 const mongoose_1 = __importDefault(require("mongoose"));
 const URI = process.env.MONGO_DB;
 if (!URI) {

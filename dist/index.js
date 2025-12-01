@@ -3,9 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-if (process.env.NODE_ENV === "development") {
-    require("dotenv").config();
-}
+require("dotenv/config");
 const express_1 = __importDefault(require("express"));
 const cors_1 = __importDefault(require("cors"));
 const connection_1 = require("./connection");
@@ -15,13 +13,13 @@ const startServer = async () => {
     const app = (0, express_1.default)();
     app.use(express_1.default.json({ limit: "10kb" }));
     app.use((0, cors_1.default)());
-    const PORT = process.env.PORT || 8080;
+    const PORT = JSON.parse(process.env.PORT) || 8080;
     await (0, connection_1.connectDB)();
     app.get("/", (_req, res) => {
         res.status(200).json({ message: "Server is healthy" });
     });
     app.use("/users", user_route_1.default);
-    app.listen(PORT, () => {
+    app.listen(PORT, "0.0.0.0", () => {
         console.log(`** Server running on port ${PORT} **`);
     });
 };

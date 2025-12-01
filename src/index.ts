@@ -11,7 +11,7 @@ const startServer = async () => {
   app.use(express.json({ limit: "10kb" }));
   app.use(cors());
 
-  const PORT = process.env.PORT || 8080;
+  const PORT = JSON.parse(process.env.PORT) || 8080;
 
   await connectDB();
 
@@ -21,7 +21,7 @@ const startServer = async () => {
 
   app.use("/users", userRoutes);
 
-  app.listen(PORT, () => {
+  app.listen(PORT, "0.0.0.0", () => {
     console.log(`** Server running on port ${PORT} **`);
   });
 };
