@@ -1,6 +1,4 @@
-if (process.env.NODE_ENV === "development") {
-  require("dotenv").config();
-}
+import "dotenv/config";
 import mongoose from "mongoose";
 
 const URI = process.env.MONGO_DB;

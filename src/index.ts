@@ -1,7 +1,4 @@
-if (process.env.NODE_ENV === "development") {
-  require("dotenv").config();
-}
-
+import "dotenv/config";
 import express, { Request, Response } from "express";
 import cors from "cors";
 import { connectDB } from "./connection";
