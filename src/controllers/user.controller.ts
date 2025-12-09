@@ -32,13 +32,13 @@ export const validateNewAccessToken = async (req: Request, res: Response, next: 
     const existingRefreshToken = await RefreshToken.findOne({ refreshToken: token }).populate<{
       user: IUser;
     }>("user");
-
     if (!existingRefreshToken) {
       res.status(401).json({ error: "Token expires. User have to send credentials." });
       return;
     }
 
     const existingUser = existingRefreshToken.user;
+
     if (!existingUser) {
       res.status(404).json({ error: "User not found" });
       return;

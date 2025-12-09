@@ -16,6 +16,7 @@ const startServer = async () => {
     const PORT = JSON.parse(process.env.PORT) || 8080;
     await (0, connection_1.connectDB)();
     app.get("/", (_req, res) => {
+        console.log("LE PEGO AL TEST / ");
         res.status(200).json({ message: "Server is healthy" });
     });
     app.use("/users", user_route_1.default);

@@ -11,8 +11,8 @@ export interface IUser {
   provider?: IProvider;
   avatarURL?: string | null;
   roles: [string];
-  createdAt: any;
-  updatedAt: any;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 export interface IProvider {
@@ -33,4 +33,18 @@ export interface IRefreshToken {
 export interface ITempToken {
   tempToken: string;
   createdAt: Date;
+}
+
+export interface IDeviceToken {
+  user: Types.ObjectId;
+  fcmToken: string;
+  deviceId: string;
+  deviceType: "android" | "ios";
+  deviceName?: string;
+  osVersion?: string;
+  appVersion?: string;
+  isActive: boolean;
+  lastUsed: Date;
+  createdAt: Date;
+  updatedAt: Date;
 }

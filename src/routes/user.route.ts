@@ -24,6 +24,12 @@ import {
   resetPasswordLimiter,
   tokenRefreshLimiter,
 } from "../middleware/limiters";
+import {
+  deactivateDeviceToken,
+  getAllUsersDevice,
+  setDevicetoken,
+  updateDeviceToken,
+} from "../controllers/deviceToken.controller";
 
 const userRoutes: Router = express.Router();
 
@@ -60,5 +66,10 @@ userRoutes.put(
   body("password").isLength({ min: 8, max: 60 }),
   updatePssUser
 );
+
+userRoutes.post("/device-token", validateAccessTokenMiddleware, setDevicetoken);
+userRoutes.patch("/device-token/last-used", validateAccessTokenMiddleware, updateDeviceToken);
+userRoutes.delete("/device-token/:deviceId", validateAccessTokenMiddleware, deactivateDeviceToken);
+userRoutes.get("/devices", validateAccessTokenMiddleware, getAllUsersDevice);
 
 export default userRoutes;

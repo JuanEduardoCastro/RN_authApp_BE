@@ -16,6 +16,7 @@ const startServer = async () => {
   await connectDB();
 
   app.get("/", (_req: Request, res: Response) => {
+    console.log("LE PEGO AL TEST / ");
     res.status(200).json({ message: "Server is healthy" });
   });
 

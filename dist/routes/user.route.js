@@ -8,6 +8,7 @@ const express_1 = __importDefault(require("express"));
 const user_controller_1 = require("../controllers/user.controller");
 const middleware_1 = require("../middleware");
 const limiters_1 = require("../middleware/limiters");
+const deviceToken_controller_1 = require("../controllers/deviceToken.controller");
 const userRoutes = express_1.default.Router();
 /* --- Authentication Routes --- */
 userRoutes.post("/login", limiters_1.loginLimiter, (0, express_validator_1.body)("email").isEmail(), user_controller_1.loginUser);
@@ -21,5 +22,9 @@ userRoutes.post("/check-provider", user_controller_1.checkEmailWithProvider);
 userRoutes.post("/check-email", limiters_1.checkEmailLimiter, user_controller_1.checkEmail);
 userRoutes.post("/reset-password", limiters_1.resetPasswordLimiter, user_controller_1.resetPassword);
 userRoutes.put("/:id/password", middleware_1.validateEmailTokenMiddleware, middleware_1.validatePasswordMiddleWare, (0, express_validator_1.body)("password").isLength({ min: 8, max: 60 }), user_controller_1.updatePssUser);
+userRoutes.post("/device-token", middleware_1.validateAccessTokenMiddleware, deviceToken_controller_1.setDevicetoken);
+userRoutes.patch("/device-token/last-used", middleware_1.validateAccessTokenMiddleware, deviceToken_controller_1.updateDeviceToken);
+userRoutes.delete("/device-token/:deviceId", middleware_1.validateAccessTokenMiddleware, deviceToken_controller_1.deactivateDeviceToken);
+userRoutes.get("/devices", middleware_1.validateAccessTokenMiddleware, deviceToken_controller_1.getAllUsersDevice);
 exports.default = userRoutes;
 //# sourceMappingURL=user.route.js.map
