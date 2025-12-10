@@ -3,15 +3,17 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.validatePasswordMiddleWare = exports.validateAccessTokenMiddleware = exports.validateEmailTokenMiddleware = exports.validateRefreshTokenMiddleware = void 0;
+exports.validatePasswordMiddleWare = exports.validateGoogleToken = exports.validateAccessTokenMiddleware = exports.validateEmailTokenMiddleware = exports.validateRefreshTokenMiddleware = exports.extractToken = void 0;
+const google_auth_library_1 = require("google-auth-library");
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const extractToken = (req) => {
     return req.headers.authorization?.split(" ")[1];
 };
+exports.extractToken = extractToken;
 /* Validate tokens */
 const validateRefreshTokenMiddleware = async (req, res, next) => {
     try {
-        const token = extractToken(req);
+        const token = (0, exports.extractToken)(req);
         const secret = process.env.RTOKEN_SECRET_KEY;
         if (!token) {
             res.status(401).json({ error: "Refresh token is required." });
@@ -33,7 +35,7 @@ const validateRefreshTokenMiddleware = async (req, res, next) => {
 exports.validateRefreshTokenMiddleware = validateRefreshTokenMiddleware;
 const validateEmailTokenMiddleware = async (req, res, next) => {
     try {
-        const token = extractToken(req);
+        const token = (0, exports.extractToken)(req);
         const secret = process.env.GMAIL_TOKEN_SECRET_KEY;
         if (!token) {
             res.status(401).json({ error: "Email token is required." });
@@ -55,7 +57,7 @@ const validateEmailTokenMiddleware = async (req, res, next) => {
 exports.validateEmailTokenMiddleware = validateEmailTokenMiddleware;
 const validateAccessTokenMiddleware = async (req, res, next) => {
     try {
-        const token = extractToken(req);
+        const token = (0, exports.extractToken)(req);
         const secret = process.env.ATOKEN_SECRET_KEY;
         if (!token) {
             res.status(401).json({ error: "Access token is required." });
@@ -75,6 +77,29 @@ const validateAccessTokenMiddleware = async (req, res, next) => {
     }
 };
 exports.validateAccessTokenMiddleware = validateAccessTokenMiddleware;
+const validateGoogleToken = async (req, res, next) => {
+    const googleClient = new google_auth_library_1.OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+    try {
+        const token = (0, exports.extractToken)(req);
+        if (token) {
+            const googleTicket = await googleClient.verifyIdToken({
+                idToken: token,
+                audience: process.env.GOOGLE_CLIENT_ID,
+            });
+            const googleClienPayload = googleTicket.getPayload();
+            if (!googleClienPayload?.email_verified) {
+                res.status(401).json({ error: "Email token must be verifed." });
+                return;
+            }
+            req.token = token;
+        }
+        next();
+    }
+    catch (error) {
+        next(error);
+    }
+};
+exports.validateGoogleToken = validateGoogleToken;
 /* Validate password */
 const validatePasswordMiddleWare = async (req, res, next) => {
     const value = req.body.password;

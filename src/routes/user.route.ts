@@ -14,6 +14,7 @@ import {
 import {
   validateAccessTokenMiddleware,
   validateEmailTokenMiddleware,
+  validateGoogleToken,
   validatePasswordMiddleWare,
   validateRefreshTokenMiddleware,
 } from "../middleware";
@@ -30,6 +31,7 @@ import {
   setDevicetoken,
   updateDeviceToken,
 } from "../controllers/deviceToken.controller";
+import { googleLogin } from "../controllers/googleLogin.controller";
 
 const userRoutes: Router = express.Router();
 
@@ -67,9 +69,14 @@ userRoutes.put(
   updatePssUser
 );
 
+/* --- FCM tokens Routes --- */
 userRoutes.post("/device-token", validateAccessTokenMiddleware, setDevicetoken);
 userRoutes.patch("/device-token/last-used", validateAccessTokenMiddleware, updateDeviceToken);
 userRoutes.delete("/device-token/:deviceId", validateAccessTokenMiddleware, deactivateDeviceToken);
 userRoutes.get("/devices", validateAccessTokenMiddleware, getAllUsersDevice);
 
 export default userRoutes;
+
+/* --- Google validate token Routes --- */
+
+userRoutes.post("/google-login", validateGoogleToken, googleLogin);

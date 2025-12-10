@@ -1,4 +1,5 @@
 import { NextFunction, Request, Response } from "express";
+import { OAuth2Client } from "google-auth-library";
 import jwt, { JwtPayload } from "jsonwebtoken";
 
 declare module "express-serve-static-core" {
@@ -9,7 +10,7 @@ declare module "express-serve-static-core" {
   }
 }
 
-const extractToken = (req: Request): string | undefined => {
+export const extractToken = (req: Request): string | undefined => {
   return req.headers.authorization?.split(" ")[1];
 };
 
@@ -92,6 +93,32 @@ export const validateAccessTokenMiddleware = async (
     const tokenVerified = jwt.verify(token, secret);
     req.tokenVerified = tokenVerified;
     req.token = token; // Also attach the token itself for consistency
+    next();
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const validateGoogleToken = async (req: Request, res: Response, next: NextFunction) => {
+  const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+  try {
+    const token = extractToken(req);
+
+    if (token) {
+      const googleTicket = await googleClient.verifyIdToken({
+        idToken: token as string,
+        audience: process.env.GOOGLE_CLIENT_ID,
+      });
+
+      const googleClienPayload = googleTicket.getPayload();
+
+      if (!googleClienPayload?.email_verified) {
+        res.status(401).json({ error: "Email token must be verifed." });
+        return;
+      }
+      req.token = token;
+    }
+
     next();
   } catch (error) {
     next(error);

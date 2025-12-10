@@ -48,7 +48,7 @@ const updateDeviceToken = async (req, res, next) => {
 exports.updateDeviceToken = updateDeviceToken;
 const deactivateDeviceToken = async (req, res, next) => {
     try {
-        const { deviceId } = req.body;
+        const { deviceId } = req.params;
         const { _id } = req.tokenVerified;
         await deviceToken_model_1.DeviceToken.findOneAndUpdate({
             user: _id,

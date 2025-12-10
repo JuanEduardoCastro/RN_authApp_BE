@@ -15,9 +15,7 @@ export interface IUser {
   updatedAt: Date;
 }
 
-export interface IProvider {
-  enum: ["google", "github", "apple", null];
-}
+export type IProvider = "google" | "github" | "apple" | null;
 export interface IPhoneNumber {
   code: string | null;
   dialCode: string | null;

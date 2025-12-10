@@ -6,6 +6,7 @@ const requiredEnvVars = [
     "ATOKEN_SECRET_KEY",
     "RTOKEN_SECRET_KEY",
     "GMAIL_TOKEN_SECRET_KEY",
+    "GOOGLE_CLIENT_ID",
     "SENDGRID_API_KEY",
     "SENDGRID_SENDER_EMAIL",
 ];

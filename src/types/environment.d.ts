@@ -5,6 +5,7 @@ declare namespace NodeJS {
     MONGO_DB: string;
     RTOKEN_SECRET_KEY: string;
     GMAIL_TOKEN_SECRET_KEY: string;
+    GOOGLE_CLIENT_ID: string;
     ATOKEN_SECRET_KEY: string;
     SENDGRID_API_KEY: string;
     SENDGRID_SENDER_EMAIL: string;

@@ -56,7 +56,7 @@ export const updateDeviceToken = async (req: Request, res: Response, next: NextF
 
 export const deactivateDeviceToken = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { deviceId } = req.body;
+    const { deviceId } = req.params;
     const { _id }: any = req.tokenVerified;
 
     await DeviceToken.findOneAndUpdate(
