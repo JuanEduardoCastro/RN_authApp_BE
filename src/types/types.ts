@@ -16,6 +16,7 @@ export interface IUser {
 }
 
 export type IProvider = "google" | "github" | "apple" | null;
+
 export interface IPhoneNumber {
   code: string | null;
   dialCode: string | null;

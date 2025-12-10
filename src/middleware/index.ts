@@ -134,6 +134,9 @@ export const validatePasswordMiddleWare = async (
 ) => {
   const value = req.body.password;
 
+  if (value.lenght < 8) {
+    res.status(400).json({ error: "Password must be at least 8 character long." });
+  }
   if (!value) {
     res.status(400).json({ error: "Password is required." });
     return;

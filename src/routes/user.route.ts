@@ -2,7 +2,6 @@ import { body } from "express-validator";
 import express, { Router } from "express";
 import {
   checkEmail,
-  checkEmailWithProvider,
   createUser,
   editUser,
   loginUser,
@@ -37,7 +36,7 @@ const userRoutes: Router = express.Router();
 
 /* --- Authentication Routes --- */
 userRoutes.post("/login", loginLimiter, body("email").isEmail(), loginUser);
-userRoutes.post("/logout", logoutUser);
+userRoutes.post("/logout", validateAccessTokenMiddleware, logoutUser);
 userRoutes.post(
   "/token/refresh",
   tokenRefreshLimiter,
@@ -58,7 +57,6 @@ userRoutes.post(
 userRoutes.patch("/:id", validateAccessTokenMiddleware, editUser);
 
 /* --- Password & Email Validation Routes --- */
-userRoutes.post("/check-provider", checkEmailWithProvider);
 userRoutes.post("/check-email", checkEmailLimiter, checkEmail);
 userRoutes.post("/reset-password", resetPasswordLimiter, resetPassword);
 userRoutes.put(

@@ -9,7 +9,11 @@ import {
   createRefreshToken,
 } from "./refreshToken.controller";
 import { RefreshToken, TempToken } from "../model/refreshToken-model";
-import { sendGridEmailValidation, sendGridResetPasswordValidation } from "../services/gridServices";
+import {
+  sendGridEmailValidation,
+  sendGridInvalidEmail,
+  sendGridResetPasswordValidation,
+} from "../services/gridServices";
 
 const toUserResponse = (user: IUser) => ({
   id: user._id,
@@ -76,7 +80,7 @@ export const loginUser = async (req: Request, res: Response, next: NextFunction)
       return;
     }
 
-    await RefreshToken.findOneAndDelete({ user: existingUser._id });
+    // await RefreshToken.findOneAndDelete({ user: existingUser._id });
 
     const isPasswordVerify = await bcrypt.compare(password, existingUser.password);
 
@@ -149,6 +153,7 @@ export const checkEmail = async (req: Request, res: Response, next: NextFunction
     const { email, provider } = req.body;
     const checkEmail = await User.findOne({ email: email });
     if (checkEmail !== null) {
+      sendGridInvalidEmail(email);
       res.status(200).json({ message: "If this email is available, an email will be sent." });
       return;
     }
@@ -168,46 +173,6 @@ export const checkEmail = async (req: Request, res: Response, next: NextFunction
       },
     });
     return;
-  } catch (error) {
-    next(error);
-  }
-};
-
-/* Check email with provider */
-
-export const checkEmailWithProvider = async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    const { email, provider } = req.body;
-
-    if (!provider) {
-      res.status(409).json({ error: "There is no provider to check user with." });
-      return;
-    }
-
-    const checkEmail = await User.findOne({ email: email });
-
-    if (provider === "google") {
-      if (checkEmail !== null) {
-        const isNew = false;
-        const emailToken = await createEmailToken(email, isNew);
-        res.status(204).json({
-          message: "Login user.",
-          data: {
-            emailToken: emailToken,
-          },
-        });
-        return;
-      } else {
-        const isNew = true;
-        const emailToken = await createEmailToken(email, isNew);
-        res.status(200).json({
-          message: "Create user.",
-          data: {
-            emailToken: emailToken,
-          },
-        });
-      }
-    }
   } catch (error) {
     next(error);
   }
@@ -272,6 +237,7 @@ export const resetPassword = async (req: Request, res: Response, next: NextFunct
 
     const checkEmail = await User.findOne({ email });
     if (!checkEmail) {
+      sendGridInvalidEmail(email);
       res.status(200).json({ message: "If this email is available, an email will be sent." });
       return;
     }
@@ -326,7 +292,7 @@ export const updatePssUser = async (req: Request, res: Response, next: NextFunct
       }
     }
 
-    const hashPassword = await bcrypt.hash(editData.password, 12);
+    const hashPassword = editData.password ? await bcrypt.hash(editData.password, 12) : undefined;
 
     const existingUser = await User.findByIdAndUpdate(
       { _id: id },

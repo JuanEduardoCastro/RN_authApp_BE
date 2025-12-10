@@ -165,3 +165,8 @@ export const sendGridResetPasswordValidation = async (token: string, email: stri
   );
   await sendGridMail(mailGridOptions);
 };
+
+export const sendGridInvalidEmail = async (email: string) => {
+  const mailGridOptions = createGridEmail(email, "Email check!", "000000000");
+  await sendGridMail(mailGridOptions);
+};

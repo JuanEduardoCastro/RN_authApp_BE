@@ -3,7 +3,7 @@ import { DeviceToken } from "../model/deviceToken-model";
 
 export const setDevicetoken = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { fcmToken, deviceId, deviceName, osVersion, appVersion } = req.body;
+    const { fcmToken, deviceId, deviceName, osVersion, appVersion, deviceType } = req.body;
     const { _id }: any = req.tokenVerified;
 
     const deviceToken = await DeviceToken.findOneAndUpdate(
@@ -14,6 +14,7 @@ export const setDevicetoken = async (req: Request, res: Response, next: NextFunc
         deviceName,
         osVersion,
         appVersion,
+        deviceType,
         isActive: true,
         lastUsed: Date.now(),
       },

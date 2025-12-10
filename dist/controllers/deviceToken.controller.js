@@ -4,7 +4,7 @@ exports.getAllUsersDevice = exports.deactivateDeviceToken = exports.updateDevice
 const deviceToken_model_1 = require("../model/deviceToken-model");
 const setDevicetoken = async (req, res, next) => {
     try {
-        const { fcmToken, deviceId, deviceName, osVersion, appVersion } = req.body;
+        const { fcmToken, deviceId, deviceName, osVersion, appVersion, deviceType } = req.body;
         const { _id } = req.tokenVerified;
         const deviceToken = await deviceToken_model_1.DeviceToken.findOneAndUpdate({ user: _id, deviceId }, {
             fcmToken,
@@ -12,6 +12,7 @@ const setDevicetoken = async (req, res, next) => {
             deviceName,
             osVersion,
             appVersion,
+            deviceType,
             isActive: true,
             lastUsed: Date.now(),
         }, {

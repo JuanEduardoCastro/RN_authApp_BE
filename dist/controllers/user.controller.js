@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.logoutUser = exports.updatePssUser = exports.resetPassword = exports.createUser = exports.checkEmailWithProvider = exports.checkEmail = exports.editUser = exports.loginUser = exports.validateNewAccessToken = void 0;
+exports.logoutUser = exports.updatePssUser = exports.resetPassword = exports.createUser = exports.checkEmail = exports.editUser = exports.loginUser = exports.validateNewAccessToken = void 0;
 const bcrypt_1 = __importDefault(require("bcrypt"));
 const express_validator_1 = require("express-validator");
 const user_model_1 = __importDefault(require("../model/user-model"));
@@ -64,7 +64,7 @@ const loginUser = async (req, res, next) => {
             res.status(401).json({ error: "Invalid credentials" });
             return;
         }
-        await refreshToken_model_1.RefreshToken.findOneAndDelete({ user: existingUser._id });
+        // await RefreshToken.findOneAndDelete({ user: existingUser._id });
         const isPasswordVerify = await bcrypt_1.default.compare(password, existingUser.password);
         if (!isPasswordVerify) {
             res.status(401).json({ error: "Invalid credentials" });
@@ -127,6 +127,7 @@ const checkEmail = async (req, res, next) => {
         const { email, provider } = req.body;
         const checkEmail = await user_model_1.default.findOne({ email: email });
         if (checkEmail !== null) {
+            (0, gridServices_1.sendGridInvalidEmail)(email);
             res.status(200).json({ message: "If this email is available, an email will be sent." });
             return;
         }
@@ -152,44 +153,6 @@ const checkEmail = async (req, res, next) => {
     }
 };
 exports.checkEmail = checkEmail;
-/* Check email with provider */
-const checkEmailWithProvider = async (req, res, next) => {
-    try {
-        const { email, provider } = req.body;
-        if (!provider) {
-            res.status(409).json({ error: "There is no provider to check user with." });
-            return;
-        }
-        const checkEmail = await user_model_1.default.findOne({ email: email });
-        if (provider === "google") {
-            if (checkEmail !== null) {
-                const isNew = false;
-                const emailToken = await (0, refreshToken_controller_1.createEmailToken)(email, isNew);
-                res.status(204).json({
-                    message: "Login user.",
-                    data: {
-                        emailToken: emailToken,
-                    },
-                });
-                return;
-            }
-            else {
-                const isNew = true;
-                const emailToken = await (0, refreshToken_controller_1.createEmailToken)(email, isNew);
-                res.status(200).json({
-                    message: "Create user.",
-                    data: {
-                        emailToken: emailToken,
-                    },
-                });
-            }
-        }
-    }
-    catch (error) {
-        next(error);
-    }
-};
-exports.checkEmailWithProvider = checkEmailWithProvider;
 /* Create a new user */
 const createUser = async (req, res, next) => {
     try {
@@ -239,6 +202,7 @@ const resetPassword = async (req, res, next) => {
         const { email } = req.body;
         const checkEmail = await user_model_1.default.findOne({ email });
         if (!checkEmail) {
+            (0, gridServices_1.sendGridInvalidEmail)(email);
             res.status(200).json({ message: "If this email is available, an email will be sent." });
             return;
         }
@@ -287,7 +251,7 @@ const updatePssUser = async (req, res, next) => {
                 return;
             }
         }
-        const hashPassword = await bcrypt_1.default.hash(editData.password, 12);
+        const hashPassword = editData.password ? await bcrypt_1.default.hash(editData.password, 12) : undefined;
         const existingUser = await user_model_1.default.findByIdAndUpdate({ _id: id }, { password: hashPassword }, {
             new: true,
         });

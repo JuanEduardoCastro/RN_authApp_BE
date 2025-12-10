@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.sendGridResetPasswordValidation = exports.sendGridEmailValidation = void 0;
+exports.sendGridInvalidEmail = exports.sendGridResetPasswordValidation = exports.sendGridEmailValidation = void 0;
 const mail_1 = __importDefault(require("@sendgrid/mail"));
 mail_1.default.setApiKey(process.env.SENDGRID_API_KEY);
 /* -------------------------- */
@@ -155,4 +155,9 @@ const sendGridResetPasswordValidation = async (token, email) => {
     await sendGridMail(mailGridOptions);
 };
 exports.sendGridResetPasswordValidation = sendGridResetPasswordValidation;
+const sendGridInvalidEmail = async (email) => {
+    const mailGridOptions = createGridEmail(email, "Email check!", "000000000");
+    await sendGridMail(mailGridOptions);
+};
+exports.sendGridInvalidEmail = sendGridInvalidEmail;
 //# sourceMappingURL=gridServices.js.map
