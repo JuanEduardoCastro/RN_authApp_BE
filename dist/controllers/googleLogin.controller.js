@@ -69,12 +69,16 @@ const googleLogin = async (req, res, next) => {
                     return;
                 }
                 else if (googleExistingUser.provider === "google") {
-                    const updateGoogleUser = await user_model_1.default.findOneAndReplace({ email: googleUser.email }, {
-                        firstName: googleUser.firstName,
-                        lastName: googleUser.lastName,
-                        email: googleUser.email,
-                        avatarURL: googleUser.avatarURL,
-                        provider: "google",
+                    const updateGoogleUser = await user_model_1.default.findOneAndUpdate({ email: googleUser.email }, {
+                        $set: {
+                            firstName: googleUser.firstName,
+                            lastName: googleUser.lastName,
+                            avatarURL: googleUser.avatarURL,
+                            provider: "google",
+                        },
+                        $unset: {
+                            password: 1,
+                        },
                     }, { returnDocument: "after" });
                     if (updateGoogleUser) {
                         const accessToken = (0, refreshToken_controller_1.createNewAccessToken)(updateGoogleUser._id, updateGoogleUser.provider);

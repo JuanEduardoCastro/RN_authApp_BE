@@ -69,7 +69,7 @@ const validateAccessTokenMiddleware = async (req, res, next) => {
         }
         const tokenVerified = jsonwebtoken_1.default.verify(token, secret);
         req.tokenVerified = tokenVerified;
-        req.token = token; // Also attach the token itself for consistency
+        req.token = token;
         next();
     }
     catch (error) {
@@ -86,8 +86,8 @@ const validateGoogleToken = async (req, res, next) => {
                 idToken: token,
                 audience: process.env.GOOGLE_CLIENT_ID,
             });
-            const googleClienPayload = googleTicket.getPayload();
-            if (!googleClienPayload?.email_verified) {
+            const googleClientPayload = googleTicket.getPayload();
+            if (!googleClientPayload?.email_verified) {
                 res.status(401).json({ error: "Email token must be verifed." });
                 return;
             }
@@ -103,12 +103,12 @@ exports.validateGoogleToken = validateGoogleToken;
 /* Validate password */
 const validatePasswordMiddleWare = async (req, res, next) => {
     const value = req.body.password;
-    if (value.lenght < 8) {
-        res.status(400).json({ error: "Password must be at least 8 character long." });
-    }
     if (!value) {
         res.status(400).json({ error: "Password is required." });
         return;
+    }
+    else if (value.length < 8) {
+        res.status(400).json({ error: "Password must be at least 8 character long." });
     }
     else if (!/[A-Z]/.test(value)) {
         res.status(400).json({ error: "Password must contain at least one uppercase letter." });

@@ -75,14 +75,18 @@ export const googleLogin = async (req: Request, res: Response, next: NextFunctio
           res.status(400).json({ error: "This email is alredy link with other provider" });
           return;
         } else if (googleExistingUser.provider === "google") {
-          const updateGoogleUser = await User.findOneAndReplace(
+          const updateGoogleUser = await User.findOneAndUpdate(
             { email: googleUser.email },
             {
-              firstName: googleUser.firstName,
-              lastName: googleUser.lastName,
-              email: googleUser.email,
-              avatarURL: googleUser.avatarURL,
-              provider: "google",
+              $set: {
+                firstName: googleUser.firstName,
+                lastName: googleUser.lastName,
+                avatarURL: googleUser.avatarURL,
+                provider: "google",
+              },
+              $unset: {
+                password: 1,
+              },
             },
             { returnDocument: "after" }
           );

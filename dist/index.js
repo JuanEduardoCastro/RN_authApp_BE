@@ -13,10 +13,9 @@ const startServer = async () => {
     const app = (0, express_1.default)();
     app.use(express_1.default.json({ limit: "10kb" }));
     app.use((0, cors_1.default)());
-    const PORT = JSON.parse(process.env.PORT) || 8080;
+    const PORT = parseInt(process.env.PORT) || 8080;
     await (0, connection_1.connectDB)();
     app.get("/", (_req, res) => {
-        console.log("LE PEGO AL TEST / ");
         res.status(200).json({ message: "Server is healthy" });
     });
     app.use("/users", user_route_1.default);

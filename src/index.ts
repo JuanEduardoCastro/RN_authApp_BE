@@ -11,12 +11,11 @@ const startServer = async () => {
   app.use(express.json({ limit: "10kb" }));
   app.use(cors());
 
-  const PORT = JSON.parse(process.env.PORT) || 8080;
+  const PORT = parseInt(process.env.PORT) || 8080;
 
   await connectDB();
 
   app.get("/", (_req: Request, res: Response) => {
-    console.log("LE PEGO AL TEST / ");
     res.status(200).json({ message: "Server is healthy" });
   });
 

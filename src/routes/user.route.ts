@@ -7,7 +7,7 @@ import {
   loginUser,
   logoutUser,
   resetPassword,
-  updatePssUser,
+  updatePasswordUser,
   validateNewAccessToken,
 } from "../controllers/user.controller";
 import {
@@ -20,7 +20,11 @@ import {
 import {
   checkEmailLimiter,
   createUserLimiter,
+  deviceTokenLimiter,
+  googleLoginLimiter,
   loginLimiter,
+  logoutLimiter,
+  newPasswordLimiter,
   resetPasswordLimiter,
   tokenRefreshLimiter,
 } from "../middleware/limiters";
@@ -36,7 +40,7 @@ const userRoutes: Router = express.Router();
 
 /* --- Authentication Routes --- */
 userRoutes.post("/login", loginLimiter, body("email").isEmail(), loginUser);
-userRoutes.post("/logout", validateAccessTokenMiddleware, logoutUser);
+userRoutes.post("/logout", logoutLimiter, validateAccessTokenMiddleware, logoutUser);
 userRoutes.post(
   "/token/refresh",
   tokenRefreshLimiter,
@@ -61,20 +65,31 @@ userRoutes.post("/check-email", checkEmailLimiter, checkEmail);
 userRoutes.post("/reset-password", resetPasswordLimiter, resetPassword);
 userRoutes.put(
   "/:id/password",
+  newPasswordLimiter,
   validateEmailTokenMiddleware,
   validatePasswordMiddleWare,
   body("password").isLength({ min: 8, max: 60 }),
-  updatePssUser
+  updatePasswordUser
 );
 
 /* --- FCM tokens Routes --- */
-userRoutes.post("/device-token", validateAccessTokenMiddleware, setDevicetoken);
-userRoutes.patch("/device-token/last-used", validateAccessTokenMiddleware, updateDeviceToken);
-userRoutes.delete("/device-token/:deviceId", validateAccessTokenMiddleware, deactivateDeviceToken);
-userRoutes.get("/devices", validateAccessTokenMiddleware, getAllUsersDevice);
+userRoutes.post("/device-token", deviceTokenLimiter, validateAccessTokenMiddleware, setDevicetoken);
+userRoutes.patch(
+  "/device-token/last-used",
+  deviceTokenLimiter,
+  validateAccessTokenMiddleware,
+  updateDeviceToken
+);
+userRoutes.delete(
+  "/device-token/:deviceId",
+  deviceTokenLimiter,
+  validateAccessTokenMiddleware,
+  deactivateDeviceToken
+);
+userRoutes.get("/devices", deviceTokenLimiter, validateAccessTokenMiddleware, getAllUsersDevice);
 
 export default userRoutes;
 
 /* --- Google validate token Routes --- */
 
-userRoutes.post("/google-login", validateGoogleToken, googleLogin);
+userRoutes.post("/google-login", googleLoginLimiter, validateGoogleToken, googleLogin);

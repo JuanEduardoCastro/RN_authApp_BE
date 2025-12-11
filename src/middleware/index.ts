@@ -92,7 +92,7 @@ export const validateAccessTokenMiddleware = async (
 
     const tokenVerified = jwt.verify(token, secret);
     req.tokenVerified = tokenVerified;
-    req.token = token; // Also attach the token itself for consistency
+    req.token = token;
     next();
   } catch (error) {
     next(error);
@@ -110,9 +110,9 @@ export const validateGoogleToken = async (req: Request, res: Response, next: Nex
         audience: process.env.GOOGLE_CLIENT_ID,
       });
 
-      const googleClienPayload = googleTicket.getPayload();
+      const googleClientPayload = googleTicket.getPayload();
 
-      if (!googleClienPayload?.email_verified) {
+      if (!googleClientPayload?.email_verified) {
         res.status(401).json({ error: "Email token must be verifed." });
         return;
       }
@@ -134,12 +134,11 @@ export const validatePasswordMiddleWare = async (
 ) => {
   const value = req.body.password;
 
-  if (value.lenght < 8) {
-    res.status(400).json({ error: "Password must be at least 8 character long." });
-  }
   if (!value) {
     res.status(400).json({ error: "Password is required." });
     return;
+  } else if (value.length < 8) {
+    res.status(400).json({ error: "Password must be at least 8 character long." });
   } else if (!/[A-Z]/.test(value)) {
     res.status(400).json({ error: "Password must contain at least one uppercase letter." });
     return;

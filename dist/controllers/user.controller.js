@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.logoutUser = exports.updatePssUser = exports.resetPassword = exports.createUser = exports.checkEmail = exports.editUser = exports.loginUser = exports.validateNewAccessToken = void 0;
+exports.logoutUser = exports.updatePasswordUser = exports.resetPassword = exports.createUser = exports.checkEmail = exports.editUser = exports.loginUser = exports.validateNewAccessToken = void 0;
 const bcrypt_1 = __importDefault(require("bcrypt"));
 const express_validator_1 = require("express-validator");
 const user_model_1 = __importDefault(require("../model/user-model"));
@@ -64,7 +64,7 @@ const loginUser = async (req, res, next) => {
             res.status(401).json({ error: "Invalid credentials" });
             return;
         }
-        // await RefreshToken.findOneAndDelete({ user: existingUser._id });
+        await refreshToken_model_1.RefreshToken.findOneAndDelete({ user: existingUser._id });
         const isPasswordVerify = await bcrypt_1.default.compare(password, existingUser.password);
         if (!isPasswordVerify) {
             res.status(401).json({ error: "Invalid credentials" });
@@ -229,7 +229,7 @@ const resetPassword = async (req, res, next) => {
 };
 exports.resetPassword = resetPassword;
 /* Update new password of a user by id */
-const updatePssUser = async (req, res, next) => {
+const updatePasswordUser = async (req, res, next) => {
     try {
         const errors = (0, express_validator_1.validationResult)(req);
         if (!errors.isEmpty()) {
@@ -252,6 +252,8 @@ const updatePssUser = async (req, res, next) => {
             }
         }
         const hashPassword = editData.password ? await bcrypt_1.default.hash(editData.password, 12) : undefined;
+        await refreshToken_model_1.RefreshToken.deleteMany({ user: id });
+        await refreshToken_model_1.TempToken.findOneAndDelete({ tempToken: token });
         const existingUser = await user_model_1.default.findByIdAndUpdate({ _id: id }, { password: hashPassword }, {
             new: true,
         });
@@ -259,8 +261,6 @@ const updatePssUser = async (req, res, next) => {
             res.status(404).json({ error: "User not found" });
             return;
         }
-        await refreshToken_model_1.RefreshToken.deleteMany({ user: id });
-        await refreshToken_model_1.TempToken.findOneAndDelete({ tempToken: token });
         res.status(201).json({
             message: "Password updated successfully",
         });
@@ -270,17 +270,19 @@ const updatePssUser = async (req, res, next) => {
         next(error);
     }
 };
-exports.updatePssUser = updatePssUser;
+exports.updatePasswordUser = updatePasswordUser;
 /* Logout user */
 const logoutUser = async (req, res, next) => {
     try {
-        const { email } = req.body; // Or get user ID from a verified access token
-        const existingUser = await user_model_1.default.findOne({ email });
+        const { email } = req.body;
+        email;
+        const { _id } = req.tokenVerified;
+        const existingUser = await user_model_1.default.findOne({ _id: _id });
         if (!existingUser) {
             res.status(200).json({ message: "User logged out successfully" });
             return;
         }
-        const existingRefreshToken = await refreshToken_model_1.RefreshToken.findOneAndDelete({ user: existingUser._id });
+        const existingRefreshToken = await refreshToken_model_1.RefreshToken.findOneAndDelete({ user: _id });
         if (existingRefreshToken) {
             res.status(200).json({ message: "User logged out successfully" });
             return;

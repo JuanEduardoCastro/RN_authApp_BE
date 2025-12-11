@@ -80,7 +80,7 @@ export const loginUser = async (req: Request, res: Response, next: NextFunction)
       return;
     }
 
-    // await RefreshToken.findOneAndDelete({ user: existingUser._id });
+    await RefreshToken.findOneAndDelete({ user: existingUser._id });
 
     const isPasswordVerify = await bcrypt.compare(password, existingUser.password);
 
@@ -264,7 +264,7 @@ export const resetPassword = async (req: Request, res: Response, next: NextFunct
 
 /* Update new password of a user by id */
 
-export const updatePssUser = async (req: Request, res: Response, next: NextFunction) => {
+export const updatePasswordUser = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const errors = validationResult(req);
 
@@ -294,6 +294,9 @@ export const updatePssUser = async (req: Request, res: Response, next: NextFunct
 
     const hashPassword = editData.password ? await bcrypt.hash(editData.password, 12) : undefined;
 
+    await RefreshToken.deleteMany({ user: id });
+    await TempToken.findOneAndDelete({ tempToken: token });
+
     const existingUser = await User.findByIdAndUpdate(
       { _id: id },
       { password: hashPassword },
@@ -305,10 +308,6 @@ export const updatePssUser = async (req: Request, res: Response, next: NextFunct
       res.status(404).json({ error: "User not found" });
       return;
     }
-
-    await RefreshToken.deleteMany({ user: id });
-
-    await TempToken.findOneAndDelete({ tempToken: token });
 
     res.status(201).json({
       message: "Password updated successfully",
@@ -323,15 +322,17 @@ export const updatePssUser = async (req: Request, res: Response, next: NextFunct
 
 export const logoutUser = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { email } = req.body; // Or get user ID from a verified access token
+    const { email } = req.body;
+    email;
+    const { _id }: any = req.tokenVerified;
 
-    const existingUser = await User.findOne({ email });
+    const existingUser = await User.findOne({ _id: _id });
     if (!existingUser) {
       res.status(200).json({ message: "User logged out successfully" });
       return;
     }
 
-    const existingRefreshToken = await RefreshToken.findOneAndDelete({ user: existingUser._id });
+    const existingRefreshToken = await RefreshToken.findOneAndDelete({ user: _id });
     if (existingRefreshToken) {
       res.status(200).json({ message: "User logged out successfully" });
       return;
