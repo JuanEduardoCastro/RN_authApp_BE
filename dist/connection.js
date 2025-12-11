@@ -6,6 +6,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.connectDB = void 0;
 require("dotenv/config");
 const mongoose_1 = __importDefault(require("mongoose"));
+const logger_1 = require("./utils/logger");
 const URI = process.env.MONGO_DB;
 if (!URI) {
     throw new Error("MONGO_DB not found in environment vars!");
@@ -15,14 +16,14 @@ const connect = mongoose_1.default.connection;
 mongoose_1.default.set("strictQuery", true);
 const connectDB = async () => {
     connect.on("connected", async () => {
-        console.log("++ --> DB CONNECTED <-- ++");
+        logger_1.logger.info("++ --> DB CONNECTED <-- ++");
     });
     connect.on("reconnected", async () => {
-        console.log("++ --> DB RECONNECTED <-- ++");
+        logger_1.logger.info("++ --> DB RECONNECTED <-- ++");
     });
     connect.on("disconnected", async () => {
-        console.log("++ --> DB DISCONNECTED <-- ++");
-        console.log("Trying to reconnect to Mongo...");
+        logger_1.logger.info("++ --> DB DISCONNECTED <-- ++");
+        logger_1.logger.info("Trying to reconnect to Mongo...");
         setTimeout(() => {
             mongoose_1.default.connect(URI, {
                 socketTimeoutMS: 3000,
@@ -31,12 +32,12 @@ const connectDB = async () => {
         }, 3005);
     });
     connect.on("close", async () => {
-        console.log("++ --> DB CLOSED <-- ++");
+        logger_1.logger.info("++ --> DB CLOSED <-- ++");
     });
     connect.on("error", async (error) => {
-        console.log("++ --> DB ERROR <-- ++", error);
+        logger_1.logger.error("++ --> DB ERROR <-- ++", error);
     });
-    await mongoose_1.default.connect(URI).catch((error) => console.log(error));
+    await mongoose_1.default.connect(URI).catch((error) => logger_1.logger.error(error));
 };
 exports.connectDB = connectDB;
 //# sourceMappingURL=connection.js.map

@@ -1,5 +1,14 @@
 import sgMail from "@sendgrid/mail";
-sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+import { logger } from "../utils/logger";
+
+let initialized = false;
+
+const initializeSendGrid = () => {
+  if (!initialized && process.env.SENDGRID_API_KEY) {
+    sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+    initialized = true;
+  }
+};
 
 type GridMailOptions = {
   to: string;
@@ -144,10 +153,11 @@ const createGridEmail = (to: string, subject: string, token: string) => {
 
 const sendGridMail = async (mailGridOptions: GridMailOptions) => {
   try {
+    initializeSendGrid();
     const info = await sgMail.send(mailGridOptions);
-    console.log("Email sent: " + info);
+    logger.log("Email sent: " + info);
   } catch (error) {
-    console.error("Error sending email", error);
+    logger.error("Error sending email", error);
     throw error;
   }
 };
@@ -167,6 +177,7 @@ export const sendGridResetPasswordValidation = async (token: string, email: stri
 };
 
 export const sendGridInvalidEmail = async (email: string) => {
-  const mailGridOptions = createGridEmail(email, "Email check!", "000000000");
-  await sendGridMail(mailGridOptions);
+  process.env.NODE_ENV === "development" &&
+    logger.log(`Email check for non-existing account: ${email}`);
+  return;
 };

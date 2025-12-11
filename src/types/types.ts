@@ -1,3 +1,4 @@
+import { JwtPayload } from "jsonwebtoken";
 import { Types } from "mongoose";
 
 export interface IUser {
@@ -46,4 +47,19 @@ export interface IDeviceToken {
   lastUsed: Date;
   createdAt: Date;
   updatedAt: Date;
+}
+
+export interface AccessTokenPayload extends JwtPayload {
+  _id: string | Types.ObjectId;
+  provider: IProvider;
+}
+
+export interface RefreshTokenPayload extends JwtPayload {
+  _token: string;
+}
+
+export interface EmailTokenPayload extends JwtPayload {
+  email: string;
+  isNew: boolean;
+  _id?: string | Types.ObjectId;
 }

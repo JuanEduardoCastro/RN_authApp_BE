@@ -81,18 +81,20 @@ const validateGoogleToken = async (req, res, next) => {
     const googleClient = new google_auth_library_1.OAuth2Client(process.env.GOOGLE_CLIENT_ID);
     try {
         const token = (0, exports.extractToken)(req);
-        if (token) {
-            const googleTicket = await googleClient.verifyIdToken({
-                idToken: token,
-                audience: process.env.GOOGLE_CLIENT_ID,
-            });
-            const googleClientPayload = googleTicket.getPayload();
-            if (!googleClientPayload?.email_verified) {
-                res.status(401).json({ error: "Email token must be verifed." });
-                return;
-            }
-            req.token = token;
+        if (!token) {
+            res.status(401).json({ error: "Google token is required." });
+            return;
         }
+        const googleTicket = await googleClient.verifyIdToken({
+            idToken: token,
+            audience: process.env.GOOGLE_CLIENT_ID,
+        });
+        const googleClientPayload = googleTicket.getPayload();
+        if (!googleClientPayload?.email_verified) {
+            res.status(401).json({ error: "Email must be verified." });
+            return;
+        }
+        req.token = token;
         next();
     }
     catch (error) {
@@ -108,7 +110,8 @@ const validatePasswordMiddleWare = async (req, res, next) => {
         return;
     }
     else if (value.length < 8) {
-        res.status(400).json({ error: "Password must be at least 8 character long." });
+        res.status(400).json({ error: "Password must be at least 8 characters long." });
+        return;
     }
     else if (!/[A-Z]/.test(value)) {
         res.status(400).json({ error: "Password must contain at least one uppercase letter." });

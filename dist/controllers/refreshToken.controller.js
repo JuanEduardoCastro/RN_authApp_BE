@@ -23,6 +23,11 @@ const createEmailToken = async (email, isNew, _id) => {
 exports.createEmailToken = createEmailToken;
 /* Create refresh token */
 const createRefreshToken = async (user) => {
+    const existingTokens = await refreshToken_model_1.RefreshToken.find({ user: user._id });
+    if (existingTokens.length >= 5) {
+        const oldestToken = existingTokens.sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime())[0];
+        await refreshToken_model_1.RefreshToken.findByIdAndDelete(oldestToken._id);
+    }
     const _token = (0, uuid_1.v4)();
     const refreshToken = jsonwebtoken_1.default.sign({ _token }, process.env.RTOKEN_SECRET_KEY, {
         algorithm: "HS256",

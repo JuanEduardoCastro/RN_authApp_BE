@@ -110,8 +110,14 @@ export const loginUser = async (req: Request, res: Response, next: NextFunction)
 
 export const editUser = async (req: Request, res: Response, next: NextFunction) => {
   try {
+    const errors = validationResult(req);
+
+    if (!errors.isEmpty()) {
+      res.status(400).json({ error: "Validation failed.", details: errors.array() });
+      return;
+    }
     const { id } = req.params;
-    const { _id }: any = req.tokenVerified;
+    const { _id } = req.tokenVerified;
 
     if (id !== _id) {
       res.status(401).json({ error: "Unauthorized" });
@@ -150,6 +156,13 @@ export const editUser = async (req: Request, res: Response, next: NextFunction) 
 
 export const checkEmail = async (req: Request, res: Response, next: NextFunction) => {
   try {
+    const errors = validationResult(req);
+
+    if (!errors.isEmpty()) {
+      res.status(400).json({ error: "Validation failed.", details: errors.array() });
+      return;
+    }
+
     const { email, provider } = req.body;
     const checkEmail = await User.findOne({ email: email });
     if (checkEmail !== null) {
@@ -233,6 +246,13 @@ export const createUser = async (req: Request, res: Response, next: NextFunction
 
 export const resetPassword = async (req: Request, res: Response, next: NextFunction) => {
   try {
+    const errors = validationResult(req);
+
+    if (!errors.isEmpty()) {
+      res.status(400).json({ error: "Validation failed.", details: errors.array() });
+      return;
+    }
+
     const { email } = req.body;
 
     const checkEmail = await User.findOne({ email });
@@ -273,7 +293,7 @@ export const updatePasswordUser = async (req: Request, res: Response, next: Next
       return;
     }
 
-    const { _id }: any = req.tokenVerified;
+    const { _id } = req.tokenVerified;
     const token = req.token;
     const { id } = req.params;
     const editData = req.body;
@@ -294,9 +314,6 @@ export const updatePasswordUser = async (req: Request, res: Response, next: Next
 
     const hashPassword = editData.password ? await bcrypt.hash(editData.password, 12) : undefined;
 
-    await RefreshToken.deleteMany({ user: id });
-    await TempToken.findOneAndDelete({ tempToken: token });
-
     const existingUser = await User.findByIdAndUpdate(
       { _id: id },
       { password: hashPassword },
@@ -307,6 +324,11 @@ export const updatePasswordUser = async (req: Request, res: Response, next: Next
     if (!existingUser) {
       res.status(404).json({ error: "User not found" });
       return;
+    }
+
+    await RefreshToken.deleteMany({ user: id });
+    if (token) {
+      await TempToken.findOneAndDelete({ tempToken: token });
     }
 
     res.status(201).json({
@@ -322,9 +344,7 @@ export const updatePasswordUser = async (req: Request, res: Response, next: Next
 
 export const logoutUser = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { email } = req.body;
-    email;
-    const { _id }: any = req.tokenVerified;
+    const { _id } = req.tokenVerified;
 
     const existingUser = await User.findOne({ _id: _id });
     if (!existingUser) {

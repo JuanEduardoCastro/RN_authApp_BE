@@ -1,10 +1,11 @@
 import { NextFunction, Request, Response } from "express";
 import { OAuth2Client } from "google-auth-library";
-import jwt, { JwtPayload } from "jsonwebtoken";
+import jwt from "jsonwebtoken";
+import { AccessTokenPayload, EmailTokenPayload, RefreshTokenPayload } from "../types/types";
 
 declare module "express-serve-static-core" {
   interface Request {
-    tokenVerified: JwtPayload | string;
+    tokenVerified: AccessTokenPayload | RefreshTokenPayload | EmailTokenPayload;
     tokenUserId?: string;
     token?: string;
   }
@@ -36,7 +37,7 @@ export const validateRefreshTokenMiddleware = async (
     }
 
     const tokenVerified = jwt.verify(token, secret);
-    req.tokenVerified = tokenVerified;
+    req.tokenVerified = tokenVerified as RefreshTokenPayload;
     req.token = token;
     next();
   } catch (error) {
@@ -64,7 +65,7 @@ export const validateEmailTokenMiddleware = async (
     }
 
     const tokenVerified = jwt.verify(token, secret);
-    req.tokenVerified = tokenVerified;
+    req.tokenVerified = tokenVerified as EmailTokenPayload;
     req.token = token;
     next();
   } catch (error) {
@@ -91,7 +92,7 @@ export const validateAccessTokenMiddleware = async (
     }
 
     const tokenVerified = jwt.verify(token, secret);
-    req.tokenVerified = tokenVerified;
+    req.tokenVerified = tokenVerified as AccessTokenPayload;
     req.token = token;
     next();
   } catch (error) {
@@ -104,20 +105,22 @@ export const validateGoogleToken = async (req: Request, res: Response, next: Nex
   try {
     const token = extractToken(req);
 
-    if (token) {
-      const googleTicket = await googleClient.verifyIdToken({
-        idToken: token as string,
-        audience: process.env.GOOGLE_CLIENT_ID,
-      });
-
-      const googleClientPayload = googleTicket.getPayload();
-
-      if (!googleClientPayload?.email_verified) {
-        res.status(401).json({ error: "Email token must be verifed." });
-        return;
-      }
-      req.token = token;
+    if (!token) {
+      res.status(401).json({ error: "Google token is required." });
+      return;
     }
+    const googleTicket = await googleClient.verifyIdToken({
+      idToken: token as string,
+      audience: process.env.GOOGLE_CLIENT_ID,
+    });
+
+    const googleClientPayload = googleTicket.getPayload();
+
+    if (!googleClientPayload?.email_verified) {
+      res.status(401).json({ error: "Email must be verified." });
+      return;
+    }
+    req.token = token;
 
     next();
   } catch (error) {
@@ -138,7 +141,8 @@ export const validatePasswordMiddleWare = async (
     res.status(400).json({ error: "Password is required." });
     return;
   } else if (value.length < 8) {
-    res.status(400).json({ error: "Password must be at least 8 character long." });
+    res.status(400).json({ error: "Password must be at least 8 characters long." });
+    return;
   } else if (!/[A-Z]/.test(value)) {
     res.status(400).json({ error: "Password must contain at least one uppercase letter." });
     return;

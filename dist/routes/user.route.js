@@ -17,14 +17,14 @@ userRoutes.post("/logout", limiters_1.logoutLimiter, middleware_1.validateAccess
 userRoutes.post("/token/refresh", limiters_1.tokenRefreshLimiter, middleware_1.validateRefreshTokenMiddleware, user_controller_1.validateNewAccessToken);
 /* --- User Management Routes --- */
 userRoutes.post("/create", limiters_1.createUserLimiter, middleware_1.validateEmailTokenMiddleware, middleware_1.validatePasswordMiddleWare, (0, express_validator_1.body)("email").isEmail(), (0, express_validator_1.body)("password").isLength({ min: 8, max: 60 }), user_controller_1.createUser);
-userRoutes.patch("/:id", middleware_1.validateAccessTokenMiddleware, user_controller_1.editUser);
+userRoutes.patch("/:id", middleware_1.validateAccessTokenMiddleware, (0, express_validator_1.body)("firstName").optional().trim().isLength({ max: 100 }).escape(), (0, express_validator_1.body)("lastName").optional().trim().isLength({ max: 100 }).escape(), (0, express_validator_1.body)("occupation").optional().trim().isLength({ max: 200 }).escape(), (0, express_validator_1.body)("phoneNumber.code").optional().trim().isLength({ max: 10 }), (0, express_validator_1.body)("phoneNumber.dialCode").optional().trim().isLength({ max: 10 }), (0, express_validator_1.body)("phoneNumber.number").optional().trim().isLength({ max: 20 }).isNumeric(), user_controller_1.editUser);
 /* --- Password & Email Validation Routes --- */
-userRoutes.post("/check-email", limiters_1.checkEmailLimiter, user_controller_1.checkEmail);
-userRoutes.post("/reset-password", limiters_1.resetPasswordLimiter, user_controller_1.resetPassword);
+userRoutes.post("/check-email", limiters_1.checkEmailLimiter, (0, express_validator_1.body)("email").isEmail().normalizeEmail(), user_controller_1.checkEmail);
+userRoutes.post("/reset-password", limiters_1.resetPasswordLimiter, (0, express_validator_1.body)("email").isEmail().normalizeEmail(), user_controller_1.resetPassword);
 userRoutes.put("/:id/password", limiters_1.newPasswordLimiter, middleware_1.validateEmailTokenMiddleware, middleware_1.validatePasswordMiddleWare, (0, express_validator_1.body)("password").isLength({ min: 8, max: 60 }), user_controller_1.updatePasswordUser);
 /* --- FCM tokens Routes --- */
-userRoutes.post("/device-token", limiters_1.deviceTokenLimiter, middleware_1.validateAccessTokenMiddleware, deviceToken_controller_1.setDevicetoken);
-userRoutes.patch("/device-token/last-used", limiters_1.deviceTokenLimiter, middleware_1.validateAccessTokenMiddleware, deviceToken_controller_1.updateDeviceToken);
+userRoutes.post("/device-token", limiters_1.deviceTokenLimiter, middleware_1.validateAccessTokenMiddleware, (0, express_validator_1.body)("fcmToken").isString().trim().isLength({ min: 10, max: 500 }), (0, express_validator_1.body)("deviceId").isString().trim().isLength({ min: 1, max: 200 }), (0, express_validator_1.body)("deviceType").isIn(["android", "ios"]), (0, express_validator_1.body)("deviceName").optional().trim().isLength({ max: 100 }), (0, express_validator_1.body)("osVersion").optional().trim().isLength({ max: 50 }), (0, express_validator_1.body)("appVersion").optional().trim().isLength({ max: 50 }), deviceToken_controller_1.setDevicetoken);
+userRoutes.patch("/device-token/last-used", limiters_1.deviceTokenLimiter, middleware_1.validateAccessTokenMiddleware, (0, express_validator_1.body)("deviceId").isString().trim().isLength({ min: 1, max: 200 }), deviceToken_controller_1.updateDeviceToken);
 userRoutes.delete("/device-token/:deviceId", limiters_1.deviceTokenLimiter, middleware_1.validateAccessTokenMiddleware, deviceToken_controller_1.deactivateDeviceToken);
 userRoutes.get("/devices", limiters_1.deviceTokenLimiter, middleware_1.validateAccessTokenMiddleware, deviceToken_controller_1.getAllUsersDevice);
 exports.default = userRoutes;

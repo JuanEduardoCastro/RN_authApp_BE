@@ -28,6 +28,15 @@ export const createEmailToken = async (
 /* Create refresh token */
 
 export const createRefreshToken = async (user: IUser) => {
+  const existingTokens = await RefreshToken.find({ user: user._id });
+
+  if (existingTokens.length >= 5) {
+    const oldestToken = existingTokens.sort(
+      (a, b) => a.createdAt.getTime() - b.createdAt.getTime()
+    )[0];
+    await RefreshToken.findByIdAndDelete(oldestToken._id);
+  }
+
   const _token = uuidv4();
 
   const refreshToken = jwt.sign({ _token }, process.env.RTOKEN_SECRET_KEY, {
@@ -39,6 +48,7 @@ export const createRefreshToken = async (user: IUser) => {
     refreshToken: refreshToken,
     user: user._id,
   });
+
   if (!savedToken) {
     throw new Error("Failed to save refresh token.");
   }

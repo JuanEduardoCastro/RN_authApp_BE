@@ -1,5 +1,6 @@
 import "dotenv/config";
 import mongoose from "mongoose";
+import { logger } from "./utils/logger";
 
 const URI = process.env.MONGO_DB;
 
@@ -13,16 +14,16 @@ mongoose.set("strictQuery", true);
 
 const connectDB = async () => {
   connect.on("connected", async () => {
-    console.log("++ --> DB CONNECTED <-- ++");
+    logger.info("++ --> DB CONNECTED <-- ++");
   });
 
   connect.on("reconnected", async () => {
-    console.log("++ --> DB RECONNECTED <-- ++");
+    logger.info("++ --> DB RECONNECTED <-- ++");
   });
 
   connect.on("disconnected", async () => {
-    console.log("++ --> DB DISCONNECTED <-- ++");
-    console.log("Trying to reconnect to Mongo...");
+    logger.info("++ --> DB DISCONNECTED <-- ++");
+    logger.info("Trying to reconnect to Mongo...");
 
     setTimeout(() => {
       mongoose.connect(URI, {
@@ -33,14 +34,14 @@ const connectDB = async () => {
   });
 
   connect.on("close", async () => {
-    console.log("++ --> DB CLOSED <-- ++");
+    logger.info("++ --> DB CLOSED <-- ++");
   });
 
   connect.on("error", async (error) => {
-    console.log("++ --> DB ERROR <-- ++", error);
+    logger.error("++ --> DB ERROR <-- ++", error);
   });
 
-  await mongoose.connect(URI).catch((error) => console.log(error));
+  await mongoose.connect(URI).catch((error) => logger.error(error));
 };
 
 export { connectDB };

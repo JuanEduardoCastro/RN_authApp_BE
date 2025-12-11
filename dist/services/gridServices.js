@@ -5,7 +5,14 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.sendGridInvalidEmail = exports.sendGridResetPasswordValidation = exports.sendGridEmailValidation = void 0;
 const mail_1 = __importDefault(require("@sendgrid/mail"));
-mail_1.default.setApiKey(process.env.SENDGRID_API_KEY);
+const logger_1 = require("../utils/logger");
+let initialized = false;
+const initializeSendGrid = () => {
+    if (!initialized && process.env.SENDGRID_API_KEY) {
+        mail_1.default.setApiKey(process.env.SENDGRID_API_KEY);
+        initialized = true;
+    }
+};
 /* -------------------------- */
 const createGridEmail = (to, subject, token) => {
     let details = {
@@ -137,11 +144,12 @@ const createGridEmail = (to, subject, token) => {
 };
 const sendGridMail = async (mailGridOptions) => {
     try {
+        initializeSendGrid();
         const info = await mail_1.default.send(mailGridOptions);
-        console.log("Email sent: " + info);
+        logger_1.logger.log("Email sent: " + info);
     }
     catch (error) {
-        console.error("Error sending email", error);
+        logger_1.logger.error("Error sending email", error);
         throw error;
     }
 };
@@ -156,8 +164,9 @@ const sendGridResetPasswordValidation = async (token, email) => {
 };
 exports.sendGridResetPasswordValidation = sendGridResetPasswordValidation;
 const sendGridInvalidEmail = async (email) => {
-    const mailGridOptions = createGridEmail(email, "Email check!", "000000000");
-    await sendGridMail(mailGridOptions);
+    process.env.NODE_ENV === "development" &&
+        logger_1.logger.log(`Email check for non-existing account: ${email}`);
+    return;
 };
 exports.sendGridInvalidEmail = sendGridInvalidEmail;
 //# sourceMappingURL=gridServices.js.map

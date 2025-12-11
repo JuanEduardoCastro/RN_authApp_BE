@@ -4,12 +4,28 @@ import cors from "cors";
 import { connectDB } from "./connection";
 import userRoutes from "./routes/user.route";
 import { checkEnvVars } from "./checkEnvVars";
+import helmet from "helmet";
+import { enforceHTTPS } from "./middleware/security";
+import { logger } from "./utils/logger";
 
 const startServer = async () => {
   const app = express();
 
+  app.use(
+    helmet({
+      contentSecurityPolicy: false,
+      crossOriginEmbedderPolicy: false,
+    })
+  );
+  app.use(enforceHTTPS);
+
   app.use(express.json({ limit: "10kb" }));
-  app.use(cors());
+  app.use(
+    cors({
+      origin: false,
+      credentials: false,
+    })
+  );
 
   const PORT = parseInt(process.env.PORT) || 8080;
 
@@ -22,13 +38,13 @@ const startServer = async () => {
   app.use("/users", userRoutes);
 
   app.listen(PORT, "0.0.0.0", () => {
-    console.log(`** Server running on port ${PORT} **`);
+    logger.info(`** Server running on port ${PORT} **`);
   });
 };
 
 checkEnvVars();
 
 startServer().catch((error) => {
-  console.error("XX -> Failed to start server:", error);
+  logger.error("XX -> Failed to start server:", error);
   process.exit(1);
 });

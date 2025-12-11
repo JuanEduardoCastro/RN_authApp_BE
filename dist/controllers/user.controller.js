@@ -90,6 +90,11 @@ exports.loginUser = loginUser;
 /* Edit profile of a user by id */
 const editUser = async (req, res, next) => {
     try {
+        const errors = (0, express_validator_1.validationResult)(req);
+        if (!errors.isEmpty()) {
+            res.status(400).json({ error: "Validation failed.", details: errors.array() });
+            return;
+        }
         const { id } = req.params;
         const { _id } = req.tokenVerified;
         if (id !== _id) {
@@ -124,6 +129,11 @@ exports.editUser = editUser;
 /* Check if email exists */
 const checkEmail = async (req, res, next) => {
     try {
+        const errors = (0, express_validator_1.validationResult)(req);
+        if (!errors.isEmpty()) {
+            res.status(400).json({ error: "Validation failed.", details: errors.array() });
+            return;
+        }
         const { email, provider } = req.body;
         const checkEmail = await user_model_1.default.findOne({ email: email });
         if (checkEmail !== null) {
@@ -199,6 +209,11 @@ exports.createUser = createUser;
 /* Reset password */
 const resetPassword = async (req, res, next) => {
     try {
+        const errors = (0, express_validator_1.validationResult)(req);
+        if (!errors.isEmpty()) {
+            res.status(400).json({ error: "Validation failed.", details: errors.array() });
+            return;
+        }
         const { email } = req.body;
         const checkEmail = await user_model_1.default.findOne({ email });
         if (!checkEmail) {
@@ -252,14 +267,16 @@ const updatePasswordUser = async (req, res, next) => {
             }
         }
         const hashPassword = editData.password ? await bcrypt_1.default.hash(editData.password, 12) : undefined;
-        await refreshToken_model_1.RefreshToken.deleteMany({ user: id });
-        await refreshToken_model_1.TempToken.findOneAndDelete({ tempToken: token });
         const existingUser = await user_model_1.default.findByIdAndUpdate({ _id: id }, { password: hashPassword }, {
             new: true,
         });
         if (!existingUser) {
             res.status(404).json({ error: "User not found" });
             return;
+        }
+        await refreshToken_model_1.RefreshToken.deleteMany({ user: id });
+        if (token) {
+            await refreshToken_model_1.TempToken.findOneAndDelete({ tempToken: token });
         }
         res.status(201).json({
             message: "Password updated successfully",
@@ -274,8 +291,6 @@ exports.updatePasswordUser = updatePasswordUser;
 /* Logout user */
 const logoutUser = async (req, res, next) => {
     try {
-        const { email } = req.body;
-        email;
         const { _id } = req.tokenVerified;
         const existingUser = await user_model_1.default.findOne({ _id: _id });
         if (!existingUser) {
