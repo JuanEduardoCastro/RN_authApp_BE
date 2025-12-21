@@ -16,6 +16,13 @@ export interface IUser {
   updatedAt: Date;
 }
 
+export interface IGithubUser {
+  email: string;
+  firstName: string;
+  lastName: string;
+  avatarURL: string | null;
+}
+
 export type IProvider = "google" | "github" | "apple" | null;
 
 export interface IPhoneNumber {

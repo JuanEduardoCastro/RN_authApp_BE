@@ -9,6 +9,8 @@ const requiredEnvVars = [
     "GOOGLE_CLIENT_ID",
     "SENDGRID_API_KEY",
     "SENDGRID_SENDER_EMAIL",
+    "GITHUB_CLIENT_ID",
+    "GITHUB_CLIENT_SECRET",
 ];
 const checkEnvVars = () => {
     const missingVars = requiredEnvVars.filter((i) => !process.env[i]);

@@ -9,5 +9,7 @@ declare namespace NodeJS {
     ATOKEN_SECRET_KEY: string;
     SENDGRID_API_KEY: string;
     SENDGRID_SENDER_EMAIL: string;
+    GITHUB_CLIENT_ID: string;
+    GITHUB_CLIENT_SECRET: string;
   }
 }

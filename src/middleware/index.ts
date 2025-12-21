@@ -2,6 +2,7 @@ import { NextFunction, Request, Response } from "express";
 import { OAuth2Client } from "google-auth-library";
 import jwt from "jsonwebtoken";
 import { AccessTokenPayload, EmailTokenPayload, RefreshTokenPayload } from "../types/types";
+import axios from "axios";
 
 declare module "express-serve-static-core" {
   interface Request {
@@ -21,7 +22,7 @@ export const validateRefreshTokenMiddleware = async (
   req: Request,
   res: Response,
   next: NextFunction
-): Promise<any> => {
+): Promise<void> => {
   try {
     const token = extractToken(req);
     const secret = process.env.RTOKEN_SECRET_KEY;
@@ -49,7 +50,7 @@ export const validateEmailTokenMiddleware = async (
   req: Request,
   res: Response,
   next: NextFunction
-) => {
+): Promise<void> => {
   try {
     const token = extractToken(req);
     const secret = process.env.GMAIL_TOKEN_SECRET_KEY;
@@ -77,10 +78,11 @@ export const validateAccessTokenMiddleware = async (
   req: Request,
   res: Response,
   next: NextFunction
-) => {
+): Promise<void> => {
   try {
     const token = extractToken(req);
     const secret = process.env.ATOKEN_SECRET_KEY;
+
     if (!token) {
       res.status(401).json({ error: "Access token is required." });
       return;
@@ -100,7 +102,11 @@ export const validateAccessTokenMiddleware = async (
   }
 };
 
-export const validateGoogleToken = async (req: Request, res: Response, next: NextFunction) => {
+export const validateGoogleToken = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
   const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
   try {
     const token = extractToken(req);
@@ -122,6 +128,63 @@ export const validateGoogleToken = async (req: Request, res: Response, next: Nex
     }
     req.token = token;
 
+    next();
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const validateGithubToken = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const token = extractToken(req);
+
+    if (!token) {
+      res.status(401).json({ error: "GitHub access token is required" });
+      return;
+    }
+
+    const githubUserData = await axios.get("https://api.github.com/user", {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        Accept: "application/vnd.github.v3+json",
+      },
+    });
+
+    if (!githubUserData.data) {
+      res.status(401).json({ error: "Invalid GitHub access token" });
+      return;
+    }
+
+    let email = githubUserData.data.email;
+
+    if (!email) {
+      const emailsData = await axios.get("https://api.github.com/user/emails", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          Accept: "application/vnd.github.v3+json",
+        },
+      });
+      const primaryEmails = emailsData.data.find((email: any) => email.primary && email.verified);
+
+      if (!primaryEmails) {
+        res.status(401).json({ error: "No verified email found in GitHub account" });
+        return;
+      }
+      email = primaryEmails.email;
+    }
+
+    const githubUser = {
+      firstName: githubUserData.data.name?.split(" ")[0] || "",
+      lastName: githubUserData.data.name?.split(" ").slice(1).join(" ") || "",
+      email: email.toLowerCase(),
+      avatarURL: githubUserData.data.avatar_url || null,
+    };
+
+    req.body.githubUser = githubUser;
     next();
   } catch (error) {
     next(error);

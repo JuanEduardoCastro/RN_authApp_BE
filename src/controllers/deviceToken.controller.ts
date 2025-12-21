@@ -91,7 +91,7 @@ export const deactivateDeviceToken = async (req: Request, res: Response, next: N
     );
 
     if (!updatedDevice) {
-      res.status(404).json({ error: "Device not found" });
+      res.status(204).json({ message: "Device not found" });
       return;
     }
 

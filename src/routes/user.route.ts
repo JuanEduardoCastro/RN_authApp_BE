@@ -13,6 +13,7 @@ import {
 import {
   validateAccessTokenMiddleware,
   validateEmailTokenMiddleware,
+  validateGithubToken,
   validateGoogleToken,
   validatePasswordMiddleWare,
   validateRefreshTokenMiddleware,
@@ -21,6 +22,7 @@ import {
   checkEmailLimiter,
   createUserLimiter,
   deviceTokenLimiter,
+  githubLoginLimiter,
   googleLoginLimiter,
   loginLimiter,
   logoutLimiter,
@@ -35,6 +37,7 @@ import {
   updateDeviceToken,
 } from "../controllers/deviceToken.controller";
 import { googleLogin } from "../controllers/googleLogin.controller";
+import { githubLogin } from "../controllers/githubLogin.controller";
 
 const userRoutes: Router = express.Router();
 
@@ -66,7 +69,7 @@ userRoutes.patch(
   body("occupation").optional().trim().isLength({ max: 200 }).escape(),
   body("phoneNumber.code").optional().trim().isLength({ max: 10 }),
   body("phoneNumber.dialCode").optional().trim().isLength({ max: 10 }),
-  body("phoneNumber.number").optional().trim().isLength({ max: 20 }).isNumeric(),
+  body("phoneNumber.number").optional().trim().isLength({ max: 20 }),
   editUser
 );
 
@@ -120,8 +123,12 @@ userRoutes.delete(
 );
 userRoutes.get("/devices", deviceTokenLimiter, validateAccessTokenMiddleware, getAllUsersDevice);
 
-export default userRoutes;
-
 /* --- Google validate token Routes --- */
 
 userRoutes.post("/google-login", googleLoginLimiter, validateGoogleToken, googleLogin);
+
+/* --- GitHub validate token Routes --- */
+
+userRoutes.post("/github-login", githubLoginLimiter, validateGithubToken, githubLogin);
+
+export default userRoutes;

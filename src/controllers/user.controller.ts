@@ -20,7 +20,11 @@ const toUserResponse = (user: IUser) => ({
   firstName: user.firstName,
   email: user.email,
   lastName: user.lastName,
-  phoneNumber: user.phoneNumber,
+  phoneNumber: {
+    code: user.phoneNumber!.code,
+    dialCode: user.phoneNumber!.dialCode,
+    number: user.phoneNumber!.number,
+  },
   occupation: user.occupation,
   provider: user.provider,
   avatarURL: user.avatarURL,
@@ -347,12 +351,14 @@ export const logoutUser = async (req: Request, res: Response, next: NextFunction
     const { _id } = req.tokenVerified;
 
     const existingUser = await User.findOne({ _id: _id });
+
     if (!existingUser) {
       res.status(200).json({ message: "User logged out successfully" });
       return;
     }
 
     const existingRefreshToken = await RefreshToken.findOneAndDelete({ user: _id });
+
     if (existingRefreshToken) {
       res.status(200).json({ message: "User logged out successfully" });
       return;
