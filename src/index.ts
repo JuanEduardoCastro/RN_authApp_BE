@@ -7,6 +7,9 @@ import { checkEnvVars } from "./checkEnvVars";
 import helmet from "helmet";
 import { enforceHTTPS } from "./middleware/security";
 import { logger } from "./utils/logger";
+import packagejson from "../package.json";
+
+const APP_VERSION = packagejson.version;
 
 const startServer = async () => {
   const app = express();
@@ -32,7 +35,7 @@ const startServer = async () => {
   await connectDB();
 
   app.get("/", (_req: Request, res: Response) => {
-    res.status(200).json({ message: "Server is healthy" });
+    res.status(200).json({ message: `Server is healthy --> ${APP_VERSION} ` });
   });
 
   app.use("/users", userRoutes);

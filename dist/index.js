@@ -12,6 +12,8 @@ const checkEnvVars_1 = require("./checkEnvVars");
 const helmet_1 = __importDefault(require("helmet"));
 const security_1 = require("./middleware/security");
 const logger_1 = require("./utils/logger");
+const package_json_1 = __importDefault(require("../package.json"));
+const APP_VERSION = package_json_1.default.version;
 const startServer = async () => {
     const app = (0, express_1.default)();
     app.use((0, helmet_1.default)({
@@ -27,7 +29,7 @@ const startServer = async () => {
     const PORT = parseInt(process.env.PORT) || 8080;
     await (0, connection_1.connectDB)();
     app.get("/", (_req, res) => {
-        res.status(200).json({ message: "Server is healthy" });
+        res.status(200).json({ message: `Server is healthy --> ${APP_VERSION} ` });
     });
     app.use("/users", user_route_1.default);
     app.listen(PORT, "0.0.0.0", () => {
