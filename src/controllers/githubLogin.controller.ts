@@ -23,6 +23,7 @@ const toGithubUserResponse = (user: IUser) => ({
 export const githubLogin = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { githubUser } = req.body;
+    console.log("XX -> githubLogin.controller.ts:26 -> githubLogin -> githubUser :", githubUser);
 
     if (!githubUser || !githubUser.email) {
       res.status(401).json({ error: "Invalid credentials" });
