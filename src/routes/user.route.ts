@@ -102,7 +102,6 @@ userRoutes.post(
   validateAccessTokenMiddleware,
   body("fcmToken").isString().trim().isLength({ min: 10, max: 500 }),
   body("deviceId").isString().trim().isLength({ min: 1, max: 200 }),
-  body("deviceType").isIn(["android", "ios"]),
   body("deviceName").optional().trim().isLength({ max: 100 }),
   body("osVersion").optional().trim().isLength({ max: 50 }),
   body("appVersion").optional().trim().isLength({ max: 50 }),

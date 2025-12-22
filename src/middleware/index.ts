@@ -96,6 +96,7 @@ export const validateAccessTokenMiddleware = async (
     const tokenVerified = jwt.verify(token, secret);
     req.tokenVerified = tokenVerified as AccessTokenPayload;
     req.token = token;
+
     next();
   } catch (error) {
     next(error);

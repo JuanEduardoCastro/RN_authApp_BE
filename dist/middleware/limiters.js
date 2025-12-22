@@ -62,7 +62,7 @@ exports.githubLoginLimiter = githubLoginLimiter;
 const deviceTokenLimiter = (0, express_rate_limit_1.default)({
     windowMs: 15 * 60 * 1000, // 15 minute
     max: 5,
-    message: { error: "Too many device token attempts with google, please try again later." },
+    message: { error: "Too many device token attempts, please try again later." },
 });
 exports.deviceTokenLimiter = deviceTokenLimiter;
 //# sourceMappingURL=limiters.js.map
