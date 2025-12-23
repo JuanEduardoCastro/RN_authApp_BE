@@ -24,7 +24,7 @@ exports.createEmailToken = createEmailToken;
 /* Create refresh token */
 const createRefreshToken = async (user) => {
     const existingTokens = await refreshToken_model_1.RefreshToken.find({ user: user._id });
-    if (existingTokens.length >= 5) {
+    if (existingTokens.length >= 2) {
         const oldestToken = existingTokens.sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime())[0];
         await refreshToken_model_1.RefreshToken.findByIdAndDelete(oldestToken._id);
     }
@@ -44,8 +44,8 @@ const createRefreshToken = async (user) => {
 };
 exports.createRefreshToken = createRefreshToken;
 /* Create access token */
-const createNewAccessToken = (_id, provider) => {
-    const accessToken = jsonwebtoken_1.default.sign({ _id, provider }, process.env.ATOKEN_SECRET_KEY, {
+const createNewAccessToken = (_id, provider, roles) => {
+    const accessToken = jsonwebtoken_1.default.sign({ _id, provider, roles }, process.env.ATOKEN_SECRET_KEY, {
         algorithm: "HS256",
         expiresIn: tokens_1.EXPIRY.ACCESS_TOKEN,
     });

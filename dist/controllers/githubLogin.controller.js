@@ -39,7 +39,7 @@ const githubLogin = async (req, res, next) => {
                 provider: "github",
             });
             if (newGithubUser) {
-                const accessToken = (0, refreshToken_controller_1.createNewAccessToken)(newGithubUser._id, newGithubUser.provider);
+                const accessToken = (0, refreshToken_controller_1.createNewAccessToken)(newGithubUser._id, newGithubUser.provider, newGithubUser.roles);
                 const refreshToken = await (0, refreshToken_controller_1.createRefreshToken)(newGithubUser);
                 res.status(200).json({
                     message: "User created and logged in successfully",
@@ -53,7 +53,7 @@ const githubLogin = async (req, res, next) => {
             }
         }
         else {
-            if (existingUser.provider !== null && existingUser.provider !== "github") {
+            if (existingUser.provider !== "github") {
                 res.status(400).json({ error: "This email is already linked with another provider" });
                 return;
             }
@@ -70,7 +70,7 @@ const githubLogin = async (req, res, next) => {
                 },
             }, { returnDocument: "after" });
             if (updateGithubUser) {
-                const accessToken = (0, refreshToken_controller_1.createNewAccessToken)(updateGithubUser._id, updateGithubUser.provider);
+                const accessToken = (0, refreshToken_controller_1.createNewAccessToken)(updateGithubUser._id, updateGithubUser.provider, updateGithubUser.roles);
                 const refreshToken = await (0, refreshToken_controller_1.createRefreshToken)(updateGithubUser);
                 res.status(200).json({
                     message: "User updated successfully.",

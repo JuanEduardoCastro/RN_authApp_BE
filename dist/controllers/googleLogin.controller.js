@@ -54,7 +54,7 @@ const googleLogin = async (req, res, next) => {
                 provider: "google",
             });
             if (newGoogleUser) {
-                const accessToken = (0, refreshToken_controller_1.createNewAccessToken)(newGoogleUser._id, newGoogleUser.provider);
+                const accessToken = (0, refreshToken_controller_1.createNewAccessToken)(newGoogleUser._id, newGoogleUser.provider, newGoogleUser.roles);
                 const refreshToken = await (0, refreshToken_controller_1.createRefreshToken)(newGoogleUser);
                 res.status(200).json({
                     message: "User created and logged in successfully",
@@ -85,7 +85,7 @@ const googleLogin = async (req, res, next) => {
                 },
             }, { returnDocument: "after" });
             if (updateGoogleUser) {
-                const accessToken = (0, refreshToken_controller_1.createNewAccessToken)(updateGoogleUser._id, updateGoogleUser.provider);
+                const accessToken = (0, refreshToken_controller_1.createNewAccessToken)(updateGoogleUser._id, updateGoogleUser.provider, updateGoogleUser.roles);
                 const refreshToken = await (0, refreshToken_controller_1.createRefreshToken)(updateGoogleUser);
                 res.status(200).json({
                     message: "User updated successfully.",

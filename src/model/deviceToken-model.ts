@@ -21,7 +21,10 @@ const DeviceTokenSchema = new mongoose.Schema(
     },
     deviceType: {
       type: String,
-      enum: ["android", "ios"],
+    },
+    systemName: {
+      type: String,
+      enum: ["Android", "iOS"],
       required: true,
     },
     deviceName: {
@@ -47,6 +50,6 @@ const DeviceTokenSchema = new mongoose.Schema(
   }
 );
 
-DeviceTokenSchema.index({ user: 1, deviceId: 1 }, { unique: true });
+DeviceTokenSchema.index({ user: 1, deviceId: 1, isActive: 1, lastUsed: -1 }, { unique: true });
 
 export const DeviceToken = mongoose.model<IDeviceToken>("DeviceToken", DeviceTokenSchema);

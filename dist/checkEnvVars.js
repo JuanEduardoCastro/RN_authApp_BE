@@ -11,6 +11,9 @@ const requiredEnvVars = [
     "SENDGRID_SENDER_EMAIL",
     "GITHUB_CLIENT_ID",
     "GITHUB_CLIENT_SECRET",
+    "FIREBASE_PROJECT_ID",
+    "FIREBASE_PRIVATE_KEY",
+    "FIREBASE_CLIENT_EMAIL",
 ];
 const checkEnvVars = () => {
     const missingVars = requiredEnvVars.filter((i) => !process.env[i]);

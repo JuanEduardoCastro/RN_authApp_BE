@@ -11,7 +11,8 @@ export const setDevicetoken = async (req: Request, res: Response, next: NextFunc
       return;
     }
 
-    const { fcmToken, deviceId, deviceName, osVersion, appVersion, deviceType } = req.body;
+    const { fcmToken, deviceId, deviceName, osVersion, appVersion, deviceType, systemName } =
+      req.body;
     const { _id } = req.tokenVerified;
 
     const deviceToken = await DeviceToken.findOneAndUpdate(
@@ -23,6 +24,7 @@ export const setDevicetoken = async (req: Request, res: Response, next: NextFunc
         osVersion,
         appVersion,
         deviceType,
+        systemName,
         isActive: true,
         lastUsed: Date.now(),
       },
@@ -91,7 +93,7 @@ export const deactivateDeviceToken = async (req: Request, res: Response, next: N
     );
 
     if (!updatedDevice) {
-      res.status(204).json({ message: "Device not found" });
+      res.status(204);
       return;
     }
 

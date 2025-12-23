@@ -13,6 +13,7 @@ const helmet_1 = __importDefault(require("helmet"));
 const security_1 = require("./middleware/security");
 const logger_1 = require("./utils/logger");
 const package_json_1 = __importDefault(require("../package.json"));
+const notifications_route_1 = __importDefault(require("./routes/notifications.route"));
 const APP_VERSION = package_json_1.default.version;
 const startServer = async () => {
     const app = (0, express_1.default)();
@@ -32,6 +33,7 @@ const startServer = async () => {
         res.status(200).json({ message: `Server is healthy --> ${APP_VERSION} ` });
     });
     app.use("/users", user_route_1.default);
+    app.use("/notifications", notifications_route_1.default);
     app.listen(PORT, "0.0.0.0", () => {
         logger_1.logger.info(`** Server running on port ${PORT} **`);
     });

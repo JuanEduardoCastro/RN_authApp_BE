@@ -52,9 +52,14 @@ const userSchema = new mongoose_1.default.Schema({
         default: null,
     },
     roles: {
-        type: [String],
+        type: String,
         enum: ["user", "admin", "superadmin"],
-        default: ["user"],
+        default: "user",
+    },
+    language: {
+        type: String,
+        enum: ["en", "es"],
+        default: "en",
     },
 }, { timestamps: true });
 const User = mongoose_1.default.model("User", userSchema);

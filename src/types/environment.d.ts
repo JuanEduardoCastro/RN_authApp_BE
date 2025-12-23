@@ -11,5 +11,8 @@ declare namespace NodeJS {
     SENDGRID_SENDER_EMAIL: string;
     GITHUB_CLIENT_ID: string;
     GITHUB_CLIENT_SECRET: string;
+    FIREBASE_PROJECT_ID: string;
+    FIREBASE_PRIVATE_KEY: string;
+    FIREBASE_CLIENT_EMAIL: string;
   }
 }

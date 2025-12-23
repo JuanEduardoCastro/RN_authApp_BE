@@ -60,6 +60,16 @@ const deviceTokenLimiter = rateLimit({
   message: { error: "Too many device token attempts, please try again later." },
 });
 
+const getTokensLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 10,
+});
+
+const createNotificationLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 5,
+});
+
 export {
   loginLimiter,
   logoutLimiter,
@@ -71,4 +81,6 @@ export {
   googleLoginLimiter,
   githubLoginLimiter,
   deviceTokenLimiter,
+  getTokensLimiter,
+  createNotificationLimiter,
 };

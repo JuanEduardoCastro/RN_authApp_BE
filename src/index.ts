@@ -8,6 +8,7 @@ import helmet from "helmet";
 import { enforceHTTPS } from "./middleware/security";
 import { logger } from "./utils/logger";
 import packagejson from "../package.json";
+import notificationsRouter from "./routes/notifications.route";
 
 const APP_VERSION = packagejson.version;
 
@@ -39,6 +40,7 @@ const startServer = async () => {
   });
 
   app.use("/users", userRoutes);
+  app.use("/notifications", notificationsRouter);
 
   app.listen(PORT, "0.0.0.0", () => {
     logger.info(`** Server running on port ${PORT} **`);

@@ -9,6 +9,7 @@ declare module "express-serve-static-core" {
     tokenVerified: AccessTokenPayload | RefreshTokenPayload | EmailTokenPayload;
     tokenUserId?: string;
     token?: string;
+    roles?: string;
   }
 }
 
@@ -97,6 +98,49 @@ export const validateAccessTokenMiddleware = async (
     req.tokenVerified = tokenVerified as AccessTokenPayload;
     req.token = token;
 
+    next();
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const validateRoleMiddleware = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const token = extractToken(req);
+    const secret = process.env.ATOKEN_SECRET_KEY;
+
+    if (!token) {
+      res.status(401).json({ error: "Access token is required." });
+      return;
+    }
+
+    if (!secret) {
+      res.status(500).json({ error: "Internal server error" });
+      return;
+    }
+
+    const tokenVerified = jwt.verify(token, secret) as AccessTokenPayload;
+    if (!tokenVerified) {
+      res.status(401).json({ error: "Access token is not valid." });
+      return;
+    }
+
+    if (!["admin", "superadmin"].includes(tokenVerified.roles)) {
+      {
+        res
+          .status(401)
+          .json({ error: "User don't have super powers. Contact someone with those privileges." });
+        return;
+      }
+    }
+
+    req.tokenVerified = tokenVerified as AccessTokenPayload;
+    req.token = token;
+    req.roles = tokenVerified.roles;
     next();
   } catch (error) {
     next(error);

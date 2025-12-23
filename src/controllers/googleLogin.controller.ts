@@ -61,7 +61,11 @@ export const googleLogin = async (req: Request, res: Response, next: NextFunctio
       });
 
       if (newGoogleUser) {
-        const accessToken = createNewAccessToken(newGoogleUser._id, newGoogleUser.provider!);
+        const accessToken = createNewAccessToken(
+          newGoogleUser._id,
+          newGoogleUser.provider!,
+          newGoogleUser.roles!
+        );
         const refreshToken = await createRefreshToken(newGoogleUser);
 
         res.status(200).json({
@@ -99,7 +103,11 @@ export const googleLogin = async (req: Request, res: Response, next: NextFunctio
       );
 
       if (updateGoogleUser) {
-        const accessToken = createNewAccessToken(updateGoogleUser._id, updateGoogleUser.provider!);
+        const accessToken = createNewAccessToken(
+          updateGoogleUser._id,
+          updateGoogleUser.provider!,
+          updateGoogleUser.roles!
+        );
         const refreshToken = await createRefreshToken(updateGoogleUser);
 
         res.status(200).json({

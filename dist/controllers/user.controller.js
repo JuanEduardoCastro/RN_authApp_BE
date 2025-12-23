@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.logoutUser = exports.updatePasswordUser = exports.resetPassword = exports.createUser = exports.checkEmail = exports.editUser = exports.loginUser = exports.validateNewAccessToken = void 0;
+exports.editRole = exports.logoutUser = exports.updatePasswordUser = exports.resetPassword = exports.createUser = exports.checkEmail = exports.editUser = exports.loginUser = exports.validateNewAccessToken = void 0;
 const bcrypt_1 = __importDefault(require("bcrypt"));
 const express_validator_1 = require("express-validator");
 const user_model_1 = __importDefault(require("../model/user-model"));
@@ -16,9 +16,9 @@ const toUserResponse = (user) => ({
     email: user.email,
     lastName: user.lastName,
     phoneNumber: {
-        code: user.phoneNumber.code,
-        dialCode: user.phoneNumber.dialCode,
-        number: user.phoneNumber.number,
+        code: user.phoneNumber.code || "",
+        dialCode: user.phoneNumber.dialCode || "",
+        number: user.phoneNumber.number || "",
     },
     occupation: user.occupation,
     provider: user.provider,
@@ -39,7 +39,7 @@ const validateNewAccessToken = async (req, res, next) => {
             res.status(404).json({ error: "User not found" });
             return;
         }
-        const accessToken = (0, refreshToken_controller_1.createNewAccessToken)(existingUser._id, existingUser.provider);
+        const accessToken = (0, refreshToken_controller_1.createNewAccessToken)(existingUser._id, existingUser.provider, existingUser.roles);
         res.status(200).json({
             message: "Token is valid",
             data: {
@@ -74,7 +74,7 @@ const loginUser = async (req, res, next) => {
             res.status(401).json({ error: "Invalid credentials" });
             return;
         }
-        const accessToken = (0, refreshToken_controller_1.createNewAccessToken)(existingUser._id, existingUser.provider);
+        const accessToken = (0, refreshToken_controller_1.createNewAccessToken)(existingUser._id, existingUser.provider, existingUser.roles);
         const refreshToken = await (0, refreshToken_controller_1.createRefreshToken)(existingUser);
         res.status(200).json({
             message: "User logged in successfully",
@@ -114,7 +114,7 @@ const editUser = async (req, res, next) => {
             res.status(404).json({ error: "User not found" });
             return;
         }
-        const accessToken = (0, refreshToken_controller_1.createNewAccessToken)(updatedUser._id, updatedUser.provider);
+        const accessToken = (0, refreshToken_controller_1.createNewAccessToken)(updatedUser._id, updatedUser.provider, updatedUser.roles);
         res.status(200).json({
             message: "User edited successfully",
             data: {
@@ -316,4 +316,42 @@ const logoutUser = async (req, res, next) => {
     }
 };
 exports.logoutUser = logoutUser;
+/* Edit role for user */
+const editRole = async (req, res, next) => {
+    try {
+        const errors = (0, express_validator_1.validationResult)(req);
+        if (!errors.isEmpty()) {
+            res.status(400).json({ error: "Validation failed.", details: errors.array() });
+            return;
+        }
+        const { id } = req.params;
+        const { _id } = req.tokenVerified;
+        if (id === _id) {
+            res.status(401).json({ error: "Unauthorized" });
+            return;
+        }
+        const { roles } = req.body;
+        const allowedUpdates = { roles };
+        const updatedUser = await user_model_1.default.findByIdAndUpdate({ _id: id }, allowedUpdates, {
+            new: true,
+        });
+        if (!updatedUser) {
+            res.status(404).json({ error: "User not found" });
+            return;
+        }
+        const accessToken = (0, refreshToken_controller_1.createNewAccessToken)(updatedUser._id, updatedUser.provider, updatedUser.roles);
+        res.status(200).json({
+            message: "User edited successfully",
+            data: {
+                accessToken,
+                user: toUserResponse(updatedUser),
+            },
+        });
+        return;
+    }
+    catch (error) {
+        next(error);
+    }
+};
+exports.editRole = editRole;
 //# sourceMappingURL=user.controller.js.map

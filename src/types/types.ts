@@ -11,7 +11,7 @@ export interface IUser {
   occupation?: string | null | undefined;
   provider?: IProvider;
   avatarURL?: string | null;
-  roles: [string];
+  roles: "user" | "admin" | "superadmin";
   createdAt: Date;
   updatedAt: Date;
 }
@@ -46,10 +46,11 @@ export interface IDeviceToken {
   user: Types.ObjectId;
   fcmToken: string;
   deviceId: string;
-  deviceType: "android" | "ios";
+  deviceType: string;
   deviceName?: string;
   osVersion?: string;
   appVersion?: string;
+  systemName: "Android" | "iOS";
   isActive: boolean;
   lastUsed: Date;
   createdAt: Date;
@@ -59,6 +60,7 @@ export interface IDeviceToken {
 export interface AccessTokenPayload extends JwtPayload {
   _id: string | Types.ObjectId;
   provider: IProvider;
+  roles: "user" | "admin" | "superadmin";
 }
 
 export interface RefreshTokenPayload extends JwtPayload {

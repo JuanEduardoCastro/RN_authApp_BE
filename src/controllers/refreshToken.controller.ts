@@ -18,6 +18,7 @@ export const createEmailToken = async (
   });
 
   const savedToken = await TempToken.create({ tempToken: emailToken });
+
   if (!savedToken) {
     throw new Error("Failed to save temporary email token.");
   }
@@ -30,7 +31,7 @@ export const createEmailToken = async (
 export const createRefreshToken = async (user: IUser) => {
   const existingTokens = await RefreshToken.find({ user: user._id });
 
-  if (existingTokens.length >= 5) {
+  if (existingTokens.length >= 2) {
     const oldestToken = existingTokens.sort(
       (a, b) => a.createdAt.getTime() - b.createdAt.getTime()
     )[0];
@@ -58,8 +59,12 @@ export const createRefreshToken = async (user: IUser) => {
 
 /* Create access token */
 
-export const createNewAccessToken = (_id: string | Types.ObjectId, provider: IProvider | null) => {
-  const accessToken = jwt.sign({ _id, provider }, process.env.ATOKEN_SECRET_KEY, {
+export const createNewAccessToken = (
+  _id: string | Types.ObjectId,
+  provider: IProvider | null,
+  roles: "user" | "admin" | "superadmin"
+) => {
+  const accessToken = jwt.sign({ _id, provider, roles }, process.env.ATOKEN_SECRET_KEY, {
     algorithm: "HS256",
     expiresIn: EXPIRY.ACCESS_TOKEN,
   });

@@ -41,7 +41,11 @@ export const githubLogin = async (req: Request, res: Response, next: NextFunctio
       });
 
       if (newGithubUser) {
-        const accessToken = createNewAccessToken(newGithubUser._id, newGithubUser.provider!);
+        const accessToken = createNewAccessToken(
+          newGithubUser._id,
+          newGithubUser.provider!,
+          newGithubUser.roles!
+        );
         const refreshToken = await createRefreshToken(newGithubUser);
 
         res.status(200).json({
@@ -55,7 +59,7 @@ export const githubLogin = async (req: Request, res: Response, next: NextFunctio
         return;
       }
     } else {
-      if (existingUser.provider !== null && existingUser.provider !== "github") {
+      if (existingUser.provider !== "github") {
         res.status(400).json({ error: "This email is already linked with another provider" });
         return;
       }
@@ -79,7 +83,11 @@ export const githubLogin = async (req: Request, res: Response, next: NextFunctio
       );
 
       if (updateGithubUser) {
-        const accessToken = createNewAccessToken(updateGithubUser._id, updateGithubUser.provider!);
+        const accessToken = createNewAccessToken(
+          updateGithubUser._id,
+          updateGithubUser.provider!,
+          updateGithubUser.roles!
+        );
         const refreshToken = await createRefreshToken(updateGithubUser);
 
         res.status(200).json({

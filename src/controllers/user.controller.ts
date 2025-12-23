@@ -21,9 +21,9 @@ const toUserResponse = (user: IUser) => ({
   email: user.email,
   lastName: user.lastName,
   phoneNumber: {
-    code: user.phoneNumber!.code,
-    dialCode: user.phoneNumber!.dialCode,
-    number: user.phoneNumber!.number,
+    code: user.phoneNumber!.code || "",
+    dialCode: user.phoneNumber!.dialCode || "",
+    number: user.phoneNumber!.number || "",
   },
   occupation: user.occupation,
   provider: user.provider,
@@ -52,7 +52,11 @@ export const validateNewAccessToken = async (req: Request, res: Response, next: 
       return;
     }
 
-    const accessToken = createNewAccessToken(existingUser._id, existingUser.provider!);
+    const accessToken = createNewAccessToken(
+      existingUser._id,
+      existingUser.provider!,
+      existingUser.roles!
+    );
 
     res.status(200).json({
       message: "Token is valid",
@@ -93,7 +97,11 @@ export const loginUser = async (req: Request, res: Response, next: NextFunction)
       return;
     }
 
-    const accessToken = createNewAccessToken(existingUser._id, existingUser.provider!);
+    const accessToken = createNewAccessToken(
+      existingUser._id,
+      existingUser.provider!,
+      existingUser.roles!
+    );
     const refreshToken = await createRefreshToken(existingUser);
 
     res.status(200).json({
@@ -140,7 +148,11 @@ export const editUser = async (req: Request, res: Response, next: NextFunction) 
       return;
     }
 
-    const accessToken = createNewAccessToken(updatedUser._id, updatedUser.provider!);
+    const accessToken = createNewAccessToken(
+      updatedUser._id,
+      updatedUser.provider!,
+      updatedUser.roles!
+    );
     res.status(200).json({
       message: "User edited successfully",
       data: {
@@ -366,6 +378,54 @@ export const logoutUser = async (req: Request, res: Response, next: NextFunction
       res.status(200).json({ message: "No active session found to log out" });
       return;
     }
+  } catch (error) {
+    next(error);
+  }
+};
+
+/* Edit role for user */
+
+export const editRole = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const errors = validationResult(req);
+
+    if (!errors.isEmpty()) {
+      res.status(400).json({ error: "Validation failed.", details: errors.array() });
+      return;
+    }
+    const { id } = req.params;
+    const { _id } = req.tokenVerified;
+
+    if (id === _id) {
+      res.status(401).json({ error: "Unauthorized" });
+      return;
+    }
+
+    const { roles } = req.body;
+
+    const allowedUpdates = { roles };
+
+    const updatedUser = await User.findByIdAndUpdate({ _id: id }, allowedUpdates, {
+      new: true,
+    });
+    if (!updatedUser) {
+      res.status(404).json({ error: "User not found" });
+      return;
+    }
+
+    const accessToken = createNewAccessToken(
+      updatedUser._id,
+      updatedUser.provider!,
+      updatedUser.roles!
+    );
+    res.status(200).json({
+      message: "User edited successfully",
+      data: {
+        accessToken,
+        user: toUserResponse(updatedUser),
+      },
+    });
+    return;
   } catch (error) {
     next(error);
   }

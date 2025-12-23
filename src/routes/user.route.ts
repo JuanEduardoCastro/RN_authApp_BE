@@ -1,8 +1,9 @@
 import { body } from "express-validator";
-import express, { Router } from "express";
+import { Router } from "express";
 import {
   checkEmail,
   createUser,
+  editRole,
   editUser,
   loginUser,
   logoutUser,
@@ -17,6 +18,7 @@ import {
   validateGoogleToken,
   validatePasswordMiddleWare,
   validateRefreshTokenMiddleware,
+  validateRoleMiddleware,
 } from "../middleware";
 import {
   checkEmailLimiter,
@@ -39,7 +41,7 @@ import {
 import { googleLogin } from "../controllers/googleLogin.controller";
 import { githubLogin } from "../controllers/githubLogin.controller";
 
-const userRoutes: Router = express.Router();
+const userRoutes: Router = Router();
 
 /* --- Authentication Routes --- */
 userRoutes.post("/login", loginLimiter, body("email").isEmail(), loginUser);
@@ -71,6 +73,12 @@ userRoutes.patch(
   body("phoneNumber.dialCode").optional().trim().isLength({ max: 10 }),
   body("phoneNumber.number").optional().trim().isLength({ max: 20 }),
   editUser
+);
+userRoutes.patch(
+  "/management/:id",
+  validateRoleMiddleware,
+  body("roles").isIn(["user", "admin", "superadmin"]),
+  editRole
 );
 
 /* --- Password & Email Validation Routes --- */
@@ -105,6 +113,7 @@ userRoutes.post(
   body("deviceName").optional().trim().isLength({ max: 100 }),
   body("osVersion").optional().trim().isLength({ max: 50 }),
   body("appVersion").optional().trim().isLength({ max: 50 }),
+  body("systemName").isIn(["Android", "iOS"]),
   setDevicetoken
 );
 userRoutes.patch(

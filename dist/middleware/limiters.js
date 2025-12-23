@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.deviceTokenLimiter = exports.githubLoginLimiter = exports.googleLoginLimiter = exports.tokenRefreshLimiter = exports.createUserLimiter = exports.checkEmailLimiter = exports.resetPasswordLimiter = exports.newPasswordLimiter = exports.logoutLimiter = exports.loginLimiter = void 0;
+exports.createNotificationLimiter = exports.getTokensLimiter = exports.deviceTokenLimiter = exports.githubLoginLimiter = exports.googleLoginLimiter = exports.tokenRefreshLimiter = exports.createUserLimiter = exports.checkEmailLimiter = exports.resetPasswordLimiter = exports.newPasswordLimiter = exports.logoutLimiter = exports.loginLimiter = void 0;
 const express_rate_limit_1 = __importDefault(require("express-rate-limit"));
 const loginLimiter = (0, express_rate_limit_1.default)({
     windowMs: 15 * 60 * 1000, // 15 minute
@@ -65,4 +65,14 @@ const deviceTokenLimiter = (0, express_rate_limit_1.default)({
     message: { error: "Too many device token attempts, please try again later." },
 });
 exports.deviceTokenLimiter = deviceTokenLimiter;
+const getTokensLimiter = (0, express_rate_limit_1.default)({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 10,
+});
+exports.getTokensLimiter = getTokensLimiter;
+const createNotificationLimiter = (0, express_rate_limit_1.default)({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 5,
+});
+exports.createNotificationLimiter = createNotificationLimiter;
 //# sourceMappingURL=limiters.js.map

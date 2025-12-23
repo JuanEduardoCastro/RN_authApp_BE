@@ -10,7 +10,7 @@ const setDevicetoken = async (req, res, next) => {
             res.status(400).json({ error: "Validation failed.", details: errors.array() });
             return;
         }
-        const { fcmToken, deviceId, deviceName, osVersion, appVersion, deviceType } = req.body;
+        const { fcmToken, deviceId, deviceName, osVersion, appVersion, deviceType, systemName } = req.body;
         const { _id } = req.tokenVerified;
         const deviceToken = await deviceToken_model_1.DeviceToken.findOneAndUpdate({ user: _id, deviceId }, {
             fcmToken,
@@ -19,6 +19,7 @@ const setDevicetoken = async (req, res, next) => {
             osVersion,
             appVersion,
             deviceType,
+            systemName,
             isActive: true,
             lastUsed: Date.now(),
         }, {
@@ -71,7 +72,7 @@ const deactivateDeviceToken = async (req, res, next) => {
             deviceId,
         }, { isActive: false }, { new: true });
         if (!updatedDevice) {
-            res.status(204).json({ message: "Device not found" });
+            res.status(204);
             return;
         }
         res.status(200).json({
