@@ -64,7 +64,7 @@ export const googleLogin = async (req: Request, res: Response, next: NextFunctio
         const accessToken = createNewAccessToken(
           newGoogleUser._id,
           newGoogleUser.provider!,
-          newGoogleUser.roles!
+          newGoogleUser.roles!,
         );
         const refreshToken = await createRefreshToken(newGoogleUser);
 
@@ -84,7 +84,7 @@ export const googleLogin = async (req: Request, res: Response, next: NextFunctio
         return;
       }
 
-      await RefreshToken.findOneAndDelete({ user: googleExistingUser._id });
+      await RefreshToken.deleteMany({ user: googleExistingUser._id });
 
       const updateGoogleUser = await User.findOneAndUpdate(
         { email: googleUser.email },
@@ -99,14 +99,14 @@ export const googleLogin = async (req: Request, res: Response, next: NextFunctio
             password: 1,
           },
         },
-        { returnDocument: "after" }
+        { returnDocument: "after" },
       );
 
       if (updateGoogleUser) {
         const accessToken = createNewAccessToken(
           updateGoogleUser._id,
           updateGoogleUser.provider!,
-          updateGoogleUser.roles!
+          updateGoogleUser.roles!,
         );
         const refreshToken = await createRefreshToken(updateGoogleUser);
 

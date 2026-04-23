@@ -19,7 +19,7 @@ const startServer = async () => {
     helmet({
       contentSecurityPolicy: false,
       crossOriginEmbedderPolicy: false,
-    })
+    }),
   );
   app.use(enforceHTTPS);
 
@@ -28,14 +28,14 @@ const startServer = async () => {
     cors({
       origin: false,
       credentials: false,
-    })
+    }),
   );
 
   const PORT = parseInt(process.env.PORT) || 8080;
 
   await connectDB();
 
-  app.get("/", (_req: Request, res: Response) => {
+  app.get("/health", (_req: Request, res: Response) => {
     res.status(200).json({ message: `Server is healthy --> ${APP_VERSION} ` });
   });
 

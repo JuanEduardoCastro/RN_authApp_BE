@@ -3,6 +3,7 @@ import { OAuth2Client } from "google-auth-library";
 import jwt from "jsonwebtoken";
 import { AccessTokenPayload, EmailTokenPayload, RefreshTokenPayload } from "../types/types";
 import axios from "axios";
+import appleSignin from "apple-signin-auth";
 
 declare module "express-serve-static-core" {
   interface Request {
@@ -22,7 +23,7 @@ export const extractToken = (req: Request): string | undefined => {
 export const validateRefreshTokenMiddleware = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): Promise<void> => {
   try {
     const token = extractToken(req);
@@ -50,7 +51,7 @@ export const validateRefreshTokenMiddleware = async (
 export const validateEmailTokenMiddleware = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): Promise<void> => {
   try {
     const token = extractToken(req);
@@ -78,7 +79,7 @@ export const validateEmailTokenMiddleware = async (
 export const validateAccessTokenMiddleware = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): Promise<void> => {
   try {
     const token = extractToken(req);
@@ -107,7 +108,7 @@ export const validateAccessTokenMiddleware = async (
 export const validateRoleMiddleware = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): Promise<void> => {
   try {
     const token = extractToken(req);
@@ -150,7 +151,7 @@ export const validateRoleMiddleware = async (
 export const validateGoogleToken = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): Promise<void> => {
   const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
   try {
@@ -182,7 +183,7 @@ export const validateGoogleToken = async (
 export const validateGithubToken = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): Promise<void> => {
   try {
     const token = extractToken(req);
@@ -236,12 +237,48 @@ export const validateGithubToken = async (
   }
 };
 
+export const validateAppleMiddleware = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> => {
+  try {
+    const token = extractToken(req);
+
+    if (!token) {
+      res.status(401).json({ error: "Apple identity token is required" });
+      return;
+    }
+
+    const tokenPayload = await appleSignin.verifyIdToken(token as string, {
+      audience: process.env.APPLE_BUNDLE_ID,
+      ignoreExpiration: false,
+    });
+
+    if (!tokenPayload?.sub) {
+      res.status(401).json({ error: "Invalid Apple identity token" });
+      return;
+    }
+
+    req.body.appleUser = {
+      appleId: tokenPayload.sub,
+      email: tokenPayload.email || null,
+      firstName: req.body.firstName || null,
+      lastName: req.body.lastName || null,
+    };
+
+    next();
+  } catch (error) {
+    next(error);
+  }
+};
+
 /* Validate password */
 
 export const validatePasswordMiddleWare = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) => {
   const value = req.body.password;
 

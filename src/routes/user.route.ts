@@ -13,6 +13,7 @@ import {
 } from "../controllers/user.controller";
 import {
   validateAccessTokenMiddleware,
+  validateAppleMiddleware,
   validateEmailTokenMiddleware,
   validateGithubToken,
   validateGoogleToken,
@@ -21,6 +22,7 @@ import {
   validateRoleMiddleware,
 } from "../middleware";
 import {
+  appleLoginLimiter,
   checkEmailLimiter,
   createUserLimiter,
   deviceTokenLimiter,
@@ -40,6 +42,7 @@ import {
 } from "../controllers/deviceToken.controller";
 import { googleLogin } from "../controllers/googleLogin.controller";
 import { githubLogin } from "../controllers/githubLogin.controller";
+import { appleLogin } from "../controllers/appleLogin.controller";
 
 const userRoutes: Router = Router();
 
@@ -50,7 +53,7 @@ userRoutes.post(
   "/token/refresh",
   tokenRefreshLimiter,
   validateRefreshTokenMiddleware,
-  validateNewAccessToken
+  validateNewAccessToken,
 );
 
 /* --- User Management Routes --- */
@@ -61,7 +64,7 @@ userRoutes.post(
   validatePasswordMiddleWare,
   body("email").isEmail(),
   body("password").isLength({ min: 8, max: 60 }),
-  createUser
+  createUser,
 );
 userRoutes.patch(
   "/:id",
@@ -72,13 +75,13 @@ userRoutes.patch(
   body("phoneNumber.code").optional().trim().isLength({ max: 10 }),
   body("phoneNumber.dialCode").optional().trim().isLength({ max: 10 }),
   body("phoneNumber.number").optional().trim().isLength({ max: 20 }),
-  editUser
+  editUser,
 );
 userRoutes.patch(
   "/management/:id",
   validateRoleMiddleware,
   body("roles").isIn(["user", "admin", "superadmin"]),
-  editRole
+  editRole,
 );
 
 /* --- Password & Email Validation Routes --- */
@@ -86,13 +89,13 @@ userRoutes.post(
   "/check-email",
   checkEmailLimiter,
   body("email").isEmail().normalizeEmail(),
-  checkEmail
+  checkEmail,
 );
 userRoutes.post(
   "/reset-password",
   resetPasswordLimiter,
   body("email").isEmail().normalizeEmail(),
-  resetPassword
+  resetPassword,
 );
 userRoutes.put(
   "/:id/password",
@@ -100,7 +103,7 @@ userRoutes.put(
   validateEmailTokenMiddleware,
   validatePasswordMiddleWare,
   body("password").isLength({ min: 8, max: 60 }),
-  updatePasswordUser
+  updatePasswordUser,
 );
 
 /* --- FCM tokens Routes --- */
@@ -114,20 +117,20 @@ userRoutes.post(
   body("osVersion").optional().trim().isLength({ max: 50 }),
   body("appVersion").optional().trim().isLength({ max: 50 }),
   body("systemName").isIn(["Android", "iOS"]),
-  setDevicetoken
+  setDevicetoken,
 );
 userRoutes.patch(
   "/device-token/last-used",
   deviceTokenLimiter,
   validateAccessTokenMiddleware,
   body("deviceId").isString().trim().isLength({ min: 1, max: 200 }),
-  updateDeviceToken
+  updateDeviceToken,
 );
 userRoutes.delete(
   "/device-token/:deviceId",
   deviceTokenLimiter,
   validateAccessTokenMiddleware,
-  deactivateDeviceToken
+  deactivateDeviceToken,
 );
 userRoutes.get("/devices", deviceTokenLimiter, validateAccessTokenMiddleware, getAllUsersDevice);
 
@@ -138,5 +141,9 @@ userRoutes.post("/google-login", googleLoginLimiter, validateGoogleToken, google
 /* --- GitHub validate token Routes --- */
 
 userRoutes.post("/github-login", githubLoginLimiter, validateGithubToken, githubLogin);
+
+/* --- Apple validate token Routes --- */
+
+userRoutes.post("/apple-login", appleLoginLimiter, validateAppleMiddleware, appleLogin);
 
 export default userRoutes;

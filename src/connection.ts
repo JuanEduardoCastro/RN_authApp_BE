@@ -13,17 +13,29 @@ const connect = mongoose.connection;
 mongoose.set("strictQuery", true);
 
 const connectDB = async () => {
+  const MAX_RETRIES = 10;
+  let retryCount = 0;
+
   connect.on("connected", async () => {
     logger.info("++ --> DB CONNECTED <-- ++");
+    retryCount++;
   });
 
   connect.on("reconnected", async () => {
     logger.info("++ --> DB RECONNECTED <-- ++");
+    retryCount = 0;
   });
 
   connect.on("disconnected", async () => {
     logger.info("++ --> DB DISCONNECTED <-- ++");
     logger.info("Trying to reconnect to Mongo...");
+    if (retryCount >= MAX_RETRIES) {
+      logger.error(`Max DB reconnection attempts (${MAX_RETRIES}) reached. Shutting down.`);
+      process.exit(1);
+    }
+
+    retryCount++;
+    logger.info(`Trying to reconnect to Mongo... (attempt ${retryCount}}/${MAX_RETRIES}})`);
 
     setTimeout(() => {
       mongoose.connect(URI, {
