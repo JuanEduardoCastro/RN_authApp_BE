@@ -18,6 +18,8 @@ const toGithubUserResponse = (user: IUser) => ({
   provider: user.provider,
   avatarURL: user.avatarURL,
   roles: user.roles,
+  createdAt: user.createdAt,
+  updatedAt: user.updatedAt,
 });
 
 export const githubLogin = async (req: Request, res: Response, next: NextFunction) => {
@@ -44,7 +46,7 @@ export const githubLogin = async (req: Request, res: Response, next: NextFunctio
         const accessToken = createNewAccessToken(
           newGithubUser._id,
           newGithubUser.provider!,
-          newGithubUser.roles!
+          newGithubUser.roles!,
         );
         const refreshToken = await createRefreshToken(newGithubUser);
 
@@ -79,14 +81,14 @@ export const githubLogin = async (req: Request, res: Response, next: NextFunctio
             password: 1,
           },
         },
-        { returnDocument: "after" }
+        { returnDocument: "after" },
       );
 
       if (updateGithubUser) {
         const accessToken = createNewAccessToken(
           updateGithubUser._id,
           updateGithubUser.provider!,
-          updateGithubUser.roles!
+          updateGithubUser.roles!,
         );
         const refreshToken = await createRefreshToken(updateGithubUser);
 

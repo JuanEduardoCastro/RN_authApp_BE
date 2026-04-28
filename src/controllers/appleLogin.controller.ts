@@ -18,6 +18,8 @@ const toAppleUserResponse = (user: IUser) => ({
   provider: user.provider,
   avatarURL: user.avatarURL,
   roles: user.roles,
+  createdAt: user.createdAt,
+  updatedAt: user.updatedAt,
 });
 
 export const appleLogin = async (

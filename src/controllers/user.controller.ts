@@ -29,6 +29,8 @@ const toUserResponse = (user: IUser) => ({
   provider: user.provider,
   avatarURL: user.avatarURL,
   roles: user.roles,
+  createdAt: user.createdAt,
+  updatedAt: user.updatedAt,
 });
 
 /* Validate user token with middleware */
@@ -55,7 +57,7 @@ export const validateNewAccessToken = async (req: Request, res: Response, next: 
     const accessToken = createNewAccessToken(
       existingUser._id,
       existingUser.provider!,
-      existingUser.roles!
+      existingUser.roles!,
     );
 
     res.status(200).json({
@@ -100,7 +102,7 @@ export const loginUser = async (req: Request, res: Response, next: NextFunction)
     const accessToken = createNewAccessToken(
       existingUser._id,
       existingUser.provider!,
-      existingUser.roles!
+      existingUser.roles!,
     );
     const refreshToken = await createRefreshToken(existingUser);
 
@@ -151,7 +153,7 @@ export const editUser = async (req: Request, res: Response, next: NextFunction) 
     const accessToken = createNewAccessToken(
       updatedUser._id,
       updatedUser.provider!,
-      updatedUser.roles!
+      updatedUser.roles!,
     );
     res.status(200).json({
       message: "User edited successfully",
@@ -335,7 +337,7 @@ export const updatePasswordUser = async (req: Request, res: Response, next: Next
       { password: hashPassword },
       {
         new: true,
-      }
+      },
     );
     if (!existingUser) {
       res.status(404).json({ error: "User not found" });
@@ -416,7 +418,7 @@ export const editRole = async (req: Request, res: Response, next: NextFunction) 
     const accessToken = createNewAccessToken(
       updatedUser._id,
       updatedUser.provider!,
-      updatedUser.roles!
+      updatedUser.roles!,
     );
     res.status(200).json({
       message: "User edited successfully",

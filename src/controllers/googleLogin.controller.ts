@@ -20,6 +20,8 @@ const toGoogleUserResponse = (user: IUser) => ({
   provider: user.provider,
   avatarURL: user.avatarURL,
   roles: user.roles,
+  createdAt: user.createdAt,
+  updatedAt: user.updatedAt,
 });
 
 /* Validate user token with middleware */
