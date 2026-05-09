@@ -125,10 +125,6 @@ export const validateRoleMiddleware = async (
     }
 
     const tokenVerified = jwt.verify(token, secret) as AccessTokenPayload;
-    if (!tokenVerified) {
-      res.status(401).json({ error: "Access token is not valid." });
-      return;
-    }
 
     if (!["admin", "superadmin"].includes(tokenVerified.roles)) {
       {

@@ -1,5 +1,5 @@
 import "dotenv/config";
-import express, { Request, Response } from "express";
+import express, { NextFunction, Request, Response } from "express";
 import cors from "cors";
 import { connectDB } from "./connection";
 import userRoutes from "./routes/user.route";
@@ -23,7 +23,7 @@ const startServer = async () => {
   );
   app.use(enforceHTTPS);
 
-  app.use(express.json({ limit: "10kb" }));
+  app.use(express.json({ limit: "5mb" }));
   app.use(
     cors({
       origin: false,
@@ -31,7 +31,7 @@ const startServer = async () => {
     }),
   );
 
-  const PORT = parseInt(process.env.PORT) || 8080;
+  const PORT = parseInt(process.env.PORT) || 8080; // defaults to 8080 if PORT not set
 
   await connectDB();
 
@@ -41,6 +41,12 @@ const startServer = async () => {
 
   app.use("/users", userRoutes);
   app.use("/notifications", notificationsRouter);
+
+  app.use((err: Error, req: Request, res: Response, _next: NextFunction) => {
+    logger.error(err.message, err);
+    const status = (err as any).status ?? 500;
+    res.status(status).json({ error: err.message ?? "Internal server error" });
+  });
 
   app.listen(PORT, "0.0.0.0", () => {
     logger.info(`** Server running on port ${PORT} **`);

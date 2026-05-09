@@ -47,7 +47,12 @@ import { appleLogin } from "../controllers/appleLogin.controller";
 const userRoutes: Router = Router();
 
 /* --- Authentication Routes --- */
-userRoutes.post("/login", loginLimiter, body("email").isEmail(), loginUser);
+userRoutes.post(
+  "/login",
+  loginLimiter,
+  body("email").isEmail().normalizeEmail({ gmail_remove_dots: false }),
+  loginUser,
+);
 userRoutes.post("/logout", logoutLimiter, validateAccessTokenMiddleware, logoutUser);
 userRoutes.post(
   "/token/refresh",
@@ -62,7 +67,7 @@ userRoutes.post(
   createUserLimiter,
   validateEmailTokenMiddleware,
   validatePasswordMiddleWare,
-  body("email").isEmail(),
+  body("email").isEmail().normalizeEmail({ gmail_remove_dots: false }),
   body("password").isLength({ min: 8, max: 60 }),
   createUser,
 );
@@ -88,13 +93,13 @@ userRoutes.patch(
 userRoutes.post(
   "/check-email",
   checkEmailLimiter,
-  body("email").isEmail().normalizeEmail(),
+  body("email").isEmail().normalizeEmail({ gmail_remove_dots: false }),
   checkEmail,
 );
 userRoutes.post(
   "/reset-password",
   resetPasswordLimiter,
-  body("email").isEmail().normalizeEmail(),
+  body("email").isEmail().normalizeEmail({ gmail_remove_dots: false }),
   resetPassword,
 );
 userRoutes.put(

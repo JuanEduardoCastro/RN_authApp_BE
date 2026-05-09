@@ -7,8 +7,8 @@ declare namespace NodeJS {
     GMAIL_TOKEN_SECRET_KEY: string;
     GOOGLE_CLIENT_ID: string;
     ATOKEN_SECRET_KEY: string;
-    SENDGRID_API_KEY: string;
-    SENDGRID_SENDER_EMAIL: string;
+    BREVO_API_KEY: string;
+    BREVO_SENDER_EMAIL: string;
     GITHUB_CLIENT_ID: string;
     GITHUB_CLIENT_SECRET: string;
     APPLE_BUNDLE_ID: string;

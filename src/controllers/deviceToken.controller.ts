@@ -32,7 +32,7 @@ export const setDevicetoken = async (req: Request, res: Response, next: NextFunc
         upsert: true,
         new: true,
         setDefaultsOnInsert: true,
-      }
+      },
     );
 
     res.status(200).json({
@@ -62,7 +62,7 @@ export const updateDeviceToken = async (req: Request, res: Response, next: NextF
         deviceId,
       },
       { lastUsed: new Date() },
-      { new: true }
+      { new: true },
     );
 
     if (!updatedDevice) {
@@ -89,11 +89,11 @@ export const deactivateDeviceToken = async (req: Request, res: Response, next: N
         deviceId,
       },
       { isActive: false },
-      { new: true }
+      { new: true },
     );
 
     if (!updatedDevice) {
-      res.status(204);
+      res.sendStatus(204);
       return;
     }
 

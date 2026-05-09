@@ -10,10 +10,10 @@ import {
 } from "./refreshToken.controller";
 import { RefreshToken, TempToken } from "../model/refreshToken-model";
 import {
-  sendGridEmailValidation,
-  sendGridInvalidEmail,
-  sendGridResetPasswordValidation,
-} from "../services/gridServices";
+  sendBrevoEmailValidation,
+  sendBrevoInvalidEmail,
+  sendBrevoResetPasswordValidation,
+} from "../services/brevoServices";
 
 const toUserResponse = (user: IUser) => ({
   id: user._id,
@@ -138,9 +138,9 @@ export const editUser = async (req: Request, res: Response, next: NextFunction) 
       return;
     }
 
-    const { firstName, lastName, occupation, phoneNumber } = req.body;
+    const { firstName, lastName, occupation, phoneNumber, avatarURL } = req.body;
 
-    const allowedUpdates = { firstName, lastName, occupation, phoneNumber };
+    const allowedUpdates = { firstName, lastName, occupation, phoneNumber, avatarURL };
 
     const updatedUser = await User.findByIdAndUpdate({ _id: id }, allowedUpdates, {
       new: true,
@@ -184,20 +184,20 @@ export const checkEmail = async (req: Request, res: Response, next: NextFunction
     const { email, provider } = req.body;
     const checkEmail = await User.findOne({ email: email });
     if (checkEmail !== null) {
-      sendGridInvalidEmail(email);
+      sendBrevoInvalidEmail(email);
       res.status(200).json({ message: "If this email is available, an email will be sent." });
       return;
     }
     const isNew = true;
     const emailToken = await createEmailToken(email, isNew);
     if (!provider) {
-      sendGridEmailValidation(emailToken, email);
+      sendBrevoEmailValidation(emailToken, email);
     }
     res.status(200).json({
       message: "If this email is available, an email will be sent.",
       data: {
-        emailToken: emailToken,
         // This "data" is for DEV not PRODUCTION
+        // emailToken: emailToken,
         ...(process.env.NODE_ENV === "development" && {
           url: `authapp://app/new-password/${emailToken}`,
         }),
@@ -275,7 +275,7 @@ export const resetPassword = async (req: Request, res: Response, next: NextFunct
 
     const checkEmail = await User.findOne({ email });
     if (!checkEmail) {
-      sendGridInvalidEmail(email);
+      sendBrevoInvalidEmail(email);
       res.status(200).json({ message: "If this email is available, an email will be sent." });
       return;
     }
@@ -283,7 +283,7 @@ export const resetPassword = async (req: Request, res: Response, next: NextFunct
     const isNew = false;
     const emailToken = await createEmailToken(email, isNew, id);
     if (emailToken) {
-      sendGridResetPasswordValidation(emailToken, email);
+      sendBrevoResetPasswordValidation(emailToken, email);
     }
     res.status(200).json({
       message: "If this email is available, an email will be sent.",
@@ -322,7 +322,7 @@ export const updatePasswordUser = async (req: Request, res: Response, next: Next
     }
 
     if (token) {
-      const checkTempToken = await TempToken.findOne({ tempToken: token });
+      const checkTempToken = await TempToken.findOneAndDelete({ tempToken: token });
 
       if (!checkTempToken) {
         res.status(403).json({ error: "The token is invalid or expired." });

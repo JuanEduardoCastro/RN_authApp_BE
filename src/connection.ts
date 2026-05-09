@@ -35,7 +35,7 @@ const connectDB = async () => {
     }
 
     retryCount++;
-    logger.info(`Trying to reconnect to Mongo... (attempt ${retryCount}}/${MAX_RETRIES}})`);
+    logger.info(`Trying to reconnect to Mongo... (attempt ${retryCount}/${MAX_RETRIES})`);
 
     setTimeout(() => {
       mongoose.connect(URI, {

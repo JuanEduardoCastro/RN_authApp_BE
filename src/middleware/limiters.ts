@@ -89,16 +89,22 @@ const deviceTokenLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minute
   max: 5,
   message: { error: "Too many device token attempts, please try again later." },
+  standardHeaders: true,
+  legacyHeaders: false,
 });
 
 const getTokensLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 10,
+  standardHeaders: true,
+  legacyHeaders: false,
 });
 
 const createNotificationLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 5,
+  standardHeaders: true,
+  legacyHeaders: false,
 });
 
 export {
