@@ -13,9 +13,17 @@ const initializeSendGrid = () => {
 type GridMailOptions = {
   to: string;
   from: string;
+  replayto?: string;
+  bcc?: string[];
   subject: string;
   text: string;
   html: string;
+  trackingSettings: {
+    clickTracking: {
+      enable: boolean;
+      enableText: boolean;
+    };
+  };
 };
 
 /* -------------------------- */
@@ -49,10 +57,10 @@ const createGridEmail = (to: string, subject: string, token: string) => {
   }
 
   return {
-    from: process.env.SENDGRID_SENDER_EMAIL,
+    from: process.env.SENDGRID_SENDER_EMAIL!,
     to,
-    replyTo: process.env.SENDGRID_SENDER_EMAIL,
-    bcc: [process.env.SENDGRID_SENDER_EMAIL],
+    replyTo: process.env.SENDGRID_SENDER_EMAIL!,
+    bcc: [process.env.SENDGRID_SENDER_EMAIL!],
     subject,
     text: `Please, click this link to confirm your email: `,
     html: `
@@ -171,7 +179,7 @@ export const sendGridResetPasswordValidation = async (token: string, email: stri
   const mailGridOptions = createGridEmail(
     email,
     "Reset password. Please, confirm your email!",
-    token
+    token,
   );
   await sendGridMail(mailGridOptions);
 };

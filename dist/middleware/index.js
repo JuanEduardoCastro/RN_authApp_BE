@@ -3,10 +3,11 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.validatePasswordMiddleWare = exports.validateGithubToken = exports.validateGoogleToken = exports.validateRoleMiddleware = exports.validateAccessTokenMiddleware = exports.validateEmailTokenMiddleware = exports.validateRefreshTokenMiddleware = exports.extractToken = void 0;
+exports.validatePasswordMiddleWare = exports.validateAppleMiddleware = exports.validateGithubToken = exports.validateGoogleToken = exports.validateRoleMiddleware = exports.validateAccessTokenMiddleware = exports.validateEmailTokenMiddleware = exports.validateRefreshTokenMiddleware = exports.extractToken = void 0;
 const google_auth_library_1 = require("google-auth-library");
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const axios_1 = __importDefault(require("axios"));
+const apple_signin_auth_1 = __importDefault(require("apple-signin-auth"));
 const extractToken = (req) => {
     return req.headers.authorization?.split(" ")[1];
 };
@@ -91,10 +92,6 @@ const validateRoleMiddleware = async (req, res, next) => {
             return;
         }
         const tokenVerified = jsonwebtoken_1.default.verify(token, secret);
-        if (!tokenVerified) {
-            res.status(401).json({ error: "Access token is not valid." });
-            return;
-        }
         if (!["admin", "superadmin"].includes(tokenVerified.roles)) {
             {
                 res
@@ -184,6 +181,34 @@ const validateGithubToken = async (req, res, next) => {
     }
 };
 exports.validateGithubToken = validateGithubToken;
+const validateAppleMiddleware = async (req, res, next) => {
+    try {
+        const token = (0, exports.extractToken)(req);
+        if (!token) {
+            res.status(401).json({ error: "Apple identity token is required" });
+            return;
+        }
+        const tokenPayload = await apple_signin_auth_1.default.verifyIdToken(token, {
+            audience: process.env.APPLE_BUNDLE_ID,
+            ignoreExpiration: false,
+        });
+        if (!tokenPayload?.sub) {
+            res.status(401).json({ error: "Invalid Apple identity token" });
+            return;
+        }
+        req.body.appleUser = {
+            appleId: tokenPayload.sub,
+            email: tokenPayload.email || null,
+            firstName: req.body.firstName || null,
+            lastName: req.body.lastName || null,
+        };
+        next();
+    }
+    catch (error) {
+        next(error);
+    }
+};
+exports.validateAppleMiddleware = validateAppleMiddleware;
 /* Validate password */
 const validatePasswordMiddleWare = async (req, res, next) => {
     const value = req.body.password;

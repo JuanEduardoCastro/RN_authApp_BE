@@ -9,7 +9,7 @@ const express_validator_1 = require("express-validator");
 const user_model_1 = __importDefault(require("../model/user-model"));
 const refreshToken_controller_1 = require("./refreshToken.controller");
 const refreshToken_model_1 = require("../model/refreshToken-model");
-const gridServices_1 = require("../services/gridServices");
+const brevoServices_1 = require("../services/brevoServices");
 const toUserResponse = (user) => ({
     id: user._id,
     firstName: user.firstName,
@@ -24,6 +24,8 @@ const toUserResponse = (user) => ({
     provider: user.provider,
     avatarURL: user.avatarURL,
     roles: user.roles,
+    createdAt: user.createdAt,
+    updatedAt: user.updatedAt,
 });
 /* Validate user token with middleware */
 const validateNewAccessToken = async (req, res, next) => {
@@ -105,8 +107,8 @@ const editUser = async (req, res, next) => {
             res.status(401).json({ error: "Unauthorized" });
             return;
         }
-        const { firstName, lastName, occupation, phoneNumber } = req.body;
-        const allowedUpdates = { firstName, lastName, occupation, phoneNumber };
+        const { firstName, lastName, occupation, phoneNumber, avatarURL } = req.body;
+        const allowedUpdates = { firstName, lastName, occupation, phoneNumber, avatarURL };
         const updatedUser = await user_model_1.default.findByIdAndUpdate({ _id: id }, allowedUpdates, {
             new: true,
         });
@@ -141,20 +143,20 @@ const checkEmail = async (req, res, next) => {
         const { email, provider } = req.body;
         const checkEmail = await user_model_1.default.findOne({ email: email });
         if (checkEmail !== null) {
-            (0, gridServices_1.sendGridInvalidEmail)(email);
+            (0, brevoServices_1.sendBrevoInvalidEmail)(email);
             res.status(200).json({ message: "If this email is available, an email will be sent." });
             return;
         }
         const isNew = true;
         const emailToken = await (0, refreshToken_controller_1.createEmailToken)(email, isNew);
         if (!provider) {
-            (0, gridServices_1.sendGridEmailValidation)(emailToken, email);
+            (0, brevoServices_1.sendBrevoEmailValidation)(emailToken, email);
         }
         res.status(200).json({
             message: "If this email is available, an email will be sent.",
             data: {
-                emailToken: emailToken,
                 // This "data" is for DEV not PRODUCTION
+                // emailToken: emailToken,
                 ...(process.env.NODE_ENV === "development" && {
                     url: `authapp://app/new-password/${emailToken}`,
                 }),
@@ -221,7 +223,7 @@ const resetPassword = async (req, res, next) => {
         const { email } = req.body;
         const checkEmail = await user_model_1.default.findOne({ email });
         if (!checkEmail) {
-            (0, gridServices_1.sendGridInvalidEmail)(email);
+            (0, brevoServices_1.sendBrevoInvalidEmail)(email);
             res.status(200).json({ message: "If this email is available, an email will be sent." });
             return;
         }
@@ -229,7 +231,7 @@ const resetPassword = async (req, res, next) => {
         const isNew = false;
         const emailToken = await (0, refreshToken_controller_1.createEmailToken)(email, isNew, id);
         if (emailToken) {
-            (0, gridServices_1.sendGridResetPasswordValidation)(emailToken, email);
+            (0, brevoServices_1.sendBrevoResetPasswordValidation)(emailToken, email);
         }
         res.status(200).json({
             message: "If this email is available, an email will be sent.",
@@ -264,7 +266,7 @@ const updatePasswordUser = async (req, res, next) => {
             return;
         }
         if (token) {
-            const checkTempToken = await refreshToken_model_1.TempToken.findOne({ tempToken: token });
+            const checkTempToken = await refreshToken_model_1.TempToken.findOneAndDelete({ tempToken: token });
             if (!checkTempToken) {
                 res.status(403).json({ error: "The token is invalid or expired." });
                 return;

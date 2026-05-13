@@ -15,15 +15,25 @@ mongoose_1.default.Promise = global.Promise;
 const connect = mongoose_1.default.connection;
 mongoose_1.default.set("strictQuery", true);
 const connectDB = async () => {
+    const MAX_RETRIES = 10;
+    let retryCount = 0;
     connect.on("connected", async () => {
         logger_1.logger.info("++ --> DB CONNECTED <-- ++");
+        retryCount++;
     });
     connect.on("reconnected", async () => {
         logger_1.logger.info("++ --> DB RECONNECTED <-- ++");
+        retryCount = 0;
     });
     connect.on("disconnected", async () => {
         logger_1.logger.info("++ --> DB DISCONNECTED <-- ++");
         logger_1.logger.info("Trying to reconnect to Mongo...");
+        if (retryCount >= MAX_RETRIES) {
+            logger_1.logger.error(`Max DB reconnection attempts (${MAX_RETRIES}) reached. Shutting down.`);
+            process.exit(1);
+        }
+        retryCount++;
+        logger_1.logger.info(`Trying to reconnect to Mongo... (attempt ${retryCount}/${MAX_RETRIES})`);
         setTimeout(() => {
             mongoose_1.default.connect(URI, {
                 socketTimeoutMS: 3000,

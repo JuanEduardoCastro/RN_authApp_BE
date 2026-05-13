@@ -42,7 +42,7 @@ const startServer = async () => {
   app.use("/users", userRoutes);
   app.use("/notifications", notificationsRouter);
 
-  app.use((err: Error, req: Request, res: Response, _next: NextFunction) => {
+  app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
     logger.error(err.message, err);
     const status = (err as any).status ?? 500;
     res.status(status).json({ error: err.message ?? "Internal server error" });

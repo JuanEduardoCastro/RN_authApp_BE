@@ -23,6 +23,8 @@ const toGoogleUserResponse = (user) => ({
     provider: user.provider,
     avatarURL: user.avatarURL,
     roles: user.roles,
+    createdAt: user.createdAt,
+    updatedAt: user.updatedAt,
 });
 /* Validate user token with middleware */
 const googleLogin = async (req, res, next) => {
@@ -72,7 +74,7 @@ const googleLogin = async (req, res, next) => {
                 res.status(400).json({ error: "This email is already linked with another provider" });
                 return;
             }
-            await refreshToken_model_1.RefreshToken.findOneAndDelete({ user: googleExistingUser._id });
+            await refreshToken_model_1.RefreshToken.deleteMany({ user: googleExistingUser._id });
             const updateGoogleUser = await user_model_1.default.findOneAndUpdate({ email: googleUser.email }, {
                 $set: {
                     firstName: googleUser.firstName,

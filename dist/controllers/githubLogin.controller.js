@@ -21,6 +21,8 @@ const toGithubUserResponse = (user) => ({
     provider: user.provider,
     avatarURL: user.avatarURL,
     roles: user.roles,
+    createdAt: user.createdAt,
+    updatedAt: user.updatedAt,
 });
 const githubLogin = async (req, res, next) => {
     try {

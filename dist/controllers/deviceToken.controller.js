@@ -72,7 +72,7 @@ const deactivateDeviceToken = async (req, res, next) => {
             deviceId,
         }, { isActive: false }, { new: true });
         if (!updatedDevice) {
-            res.status(204);
+            res.sendStatus(204);
             return;
         }
         res.status(200).json({

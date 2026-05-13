@@ -22,18 +22,23 @@ const startServer = async () => {
         crossOriginEmbedderPolicy: false,
     }));
     app.use(security_1.enforceHTTPS);
-    app.use(express_1.default.json({ limit: "10kb" }));
+    app.use(express_1.default.json({ limit: "5mb" }));
     app.use((0, cors_1.default)({
         origin: false,
         credentials: false,
     }));
-    const PORT = parseInt(process.env.PORT) || 8080;
+    const PORT = parseInt(process.env.PORT) || 8080; // defaults to 8080 if PORT not set
     await (0, connection_1.connectDB)();
-    app.get("/", (_req, res) => {
+    app.get("/health", (_req, res) => {
         res.status(200).json({ message: `Server is healthy --> ${APP_VERSION} ` });
     });
     app.use("/users", user_route_1.default);
     app.use("/notifications", notifications_route_1.default);
+    app.use((err, _req, res, _next) => {
+        logger_1.logger.error(err.message, err);
+        const status = err.status ?? 500;
+        res.status(status).json({ error: err.message ?? "Internal server error" });
+    });
     app.listen(PORT, "0.0.0.0", () => {
         logger_1.logger.info(`** Server running on port ${PORT} **`);
     });
