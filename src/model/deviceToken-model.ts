@@ -12,7 +12,6 @@ const DeviceTokenSchema = new mongoose.Schema(
     fcmToken: {
       type: String,
       required: true,
-      unique: true,
     },
     deviceId: {
       type: String,
@@ -47,9 +46,9 @@ const DeviceTokenSchema = new mongoose.Schema(
   },
   {
     timestamps: true,
-  }
+  },
 );
 
-DeviceTokenSchema.index({ user: 1, deviceId: 1, isActive: 1, lastUsed: -1 }, { unique: true });
+DeviceTokenSchema.index({ user: 1, deviceId: 1 }, { unique: true });
 
 export const DeviceToken = mongoose.model<IDeviceToken>("DeviceToken", DeviceTokenSchema);
