@@ -7,7 +7,6 @@ const DeviceTokenSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       required: true,
-      index: true,
     },
     fcmToken: {
       type: String,
@@ -16,7 +15,6 @@ const DeviceTokenSchema = new mongoose.Schema(
     deviceId: {
       type: String,
       required: true,
-      index: true,
     },
     deviceType: {
       type: String,
