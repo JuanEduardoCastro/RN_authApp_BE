@@ -14,6 +14,7 @@ import {
   sendBrevoInvalidEmail,
   sendBrevoResetPasswordValidation,
 } from "../services/brevoServices";
+import { scheduleWelcomeMessage } from "../services/agendaService";
 
 const toUserResponse = (user: IUser) => ({
   id: user._id,
@@ -252,6 +253,7 @@ export const createUser = async (req: Request, res: Response, next: NextFunction
     });
 
     if (user) {
+      await scheduleWelcomeMessage(user._id.toString(), user.firstName || "there");
       res.status(201).json({ message: "User created successfully" });
       return;
     }
@@ -426,6 +428,53 @@ export const editRole = async (req: Request, res: Response, next: NextFunction) 
         accessToken,
         user: toUserResponse(updatedUser),
       },
+    });
+    return;
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getUsers = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const errors = validationResult(req);
+
+    if (!errors.isEmpty()) {
+      res.status(400).json({ error: "Validation failed.", details: errors.array() });
+      return;
+    }
+
+    const page = Math.max(1, parseInt(req.query.page as string) || 1);
+    const limit = Math.min(50, parseInt(req.query.limit as string) || 20);
+    const search = (req.query.search as string)?.trim() || "";
+
+    const safeSearch = search.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+    const filter = safeSearch
+      ? {
+          $or: [
+            { firstName: { $regex: safeSearch, $options: "i" } },
+            { lastName: { $regex: safeSearch, $options: "i" } },
+            { email: { $regex: safeSearch, $options: "i" } },
+          ],
+        }
+      : {};
+
+    const [users, total] = await Promise.all([
+      User.find(filter)
+        .select("_id firstName lastName email avatar")
+        .sort({ createdAt: -1 })
+        .skip((page - 1) * limit)
+        .limit(limit)
+        .lean(),
+      User.countDocuments(filter),
+    ]);
+
+    res.status(200).json({
+      success: true,
+      message: "Users fetched successfully",
+      data: users,
+      pagination: { page, limit, total, hasMore: page * limit < total },
     });
     return;
   } catch (error) {

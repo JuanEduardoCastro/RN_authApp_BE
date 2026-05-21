@@ -126,10 +126,10 @@ export const validateRoleMiddleware = async (
 
     const tokenVerified = jwt.verify(token, secret) as AccessTokenPayload;
 
-    if (!["admin", "superadmin"].includes(tokenVerified.roles)) {
+    if (!["superadmin"].includes(tokenVerified.roles)) {
       {
         res
-          .status(401)
+          .status(403)
           .json({ error: "User don't have super powers. Contact someone with those privileges." });
         return;
       }

@@ -1,5 +1,5 @@
 import { JwtPayload } from "jsonwebtoken";
-import { Types } from "mongoose";
+import { ObjectId, Types } from "mongoose";
 
 export interface IUser {
   _id: Types.ObjectId;
@@ -53,6 +53,18 @@ export interface IDeviceToken {
   systemName: "Android" | "iOS";
   isActive: boolean;
   lastUsed: Date;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface IMessage {
+  sender: ObjectId | null;
+  recipients: ObjectId[];
+  title: string;
+  body: string;
+  type: "push" | "in_app" | "both";
+  readBy: ObjectId[];
+  isSystemMessage: boolean;
   createdAt: Date;
   updatedAt: Date;
 }

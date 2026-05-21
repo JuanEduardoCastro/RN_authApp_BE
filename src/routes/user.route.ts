@@ -1,10 +1,11 @@
-import { body } from "express-validator";
+import { body, query } from "express-validator";
 import { Router } from "express";
 import {
   checkEmail,
   createUser,
   editRole,
   editUser,
+  getUsers,
   loginUser,
   logoutUser,
   resetPassword,
@@ -26,6 +27,7 @@ import {
   checkEmailLimiter,
   createUserLimiter,
   deviceTokenLimiter,
+  getUsersLimiter,
   githubLoginLimiter,
   googleLoginLimiter,
   loginLimiter,
@@ -87,6 +89,18 @@ userRoutes.patch(
   validateRoleMiddleware,
   body("roles").isIn(["user", "admin", "superadmin"]),
   editRole,
+);
+
+userRoutes.get(
+  "/",
+  getUsersLimiter,
+  validateRoleMiddleware,
+  [
+    query("page").optional().isInt({ min: 1 }),
+    query("limit").optional().isInt({ min: 1, max: 50 }),
+    query("search").optional().trim().isLength({ max: 100 }),
+  ],
+  getUsers,
 );
 
 /* --- Password & Email Validation Routes --- */

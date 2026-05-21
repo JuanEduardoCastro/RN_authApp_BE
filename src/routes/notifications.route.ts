@@ -8,31 +8,31 @@ import {
 } from "../controllers/pushNotification.controller";
 import { createNotificationLimiter, getTokensLimiter } from "../middleware/limiters";
 
-const notificationsRouter: Router = Router();
+const notificationsRoutes: Router = Router();
 
-/* --- Get ALL FCM Tokens (admin only) --- */
+/* --- Get ALL FCM Tokens (superadmin only) --- */
 
-notificationsRouter.get(
+notificationsRoutes.get(
   "/fcm-tokens",
   getTokensLimiter,
   validateRoleMiddleware,
   [query("systemName").optional().isIn(["Android", "iOS"])],
-  getAllFcmTokens
+  getAllFcmTokens,
 );
 
-/* --- Get FCM Tokens by user (admin only) --- */
+/* --- Get FCM Tokens by user (superadmin only) --- */
 
-notificationsRouter.get(
+notificationsRoutes.get(
   "/fcm-token-user",
   getTokensLimiter,
   validateRoleMiddleware,
   [query("email").notEmpty().isEmail()],
-  getFcmTokensByUser
+  getFcmTokensByUser,
 );
 
-/* --- Send Push Notification (Admin only) --- */
+/* --- Send Push Notification (superadmin only) --- */
 
-notificationsRouter.post(
+notificationsRoutes.post(
   "/send",
   createNotificationLimiter,
   validateRoleMiddleware,
@@ -43,7 +43,7 @@ notificationsRouter.post(
     body("systemName").optional().isIn(["Android", "iOS"]),
     body("userIds").optional().isArray(),
   ],
-  sendNotification
+  sendNotification,
 );
 
-export default notificationsRouter;
+export default notificationsRoutes;

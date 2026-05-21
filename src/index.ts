@@ -8,7 +8,9 @@ import helmet from "helmet";
 import { enforceHTTPS } from "./middleware/security";
 import { logger } from "./utils/logger";
 import packagejson from "../package.json";
-import notificationsRouter from "./routes/notifications.route";
+import notificationsRoutes from "./routes/notifications.route";
+import messageRoutes from "./routes/message.route";
+import { startAgenda } from "./services/agendaService";
 
 const APP_VERSION = packagejson.version;
 
@@ -34,13 +36,15 @@ const startServer = async () => {
   const PORT = parseInt(process.env.PORT) || 8080; // defaults to 8080 if PORT not set
 
   await connectDB();
+  await startAgenda();
 
   app.get("/health", (_req: Request, res: Response) => {
     res.status(200).json({ message: `Server is healthy --> ${APP_VERSION} ` });
   });
 
   app.use("/users", userRoutes);
-  app.use("/notifications", notificationsRouter);
+  app.use("/notifications", notificationsRoutes);
+  app.use("/messages", messageRoutes);
 
   app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
     logger.error(err.message, err);

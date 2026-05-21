@@ -107,6 +107,38 @@ const createNotificationLimiter = rateLimit({
   legacyHeaders: false,
 });
 
+const sendMessageLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 10,
+  message: { error: "Too many message send attempts, please try again later." },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+const getUsersLimiter = rateLimit({
+  windowMs: 1 * 60 * 1000, // 1 minutes
+  max: 30,
+  message: { error: "Too many get users attempts, please try again later." },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+const getMessagesLimiter = rateLimit({
+  windowMs: 1 * 60 * 1000, // 1 minutes
+  max: 60,
+  message: { error: "Too many message fetch requests, please try again later." },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+const markReadLimiter = rateLimit({
+  windowMs: 1 * 60 * 1000, // 1
+  max: 120,
+  message: { error: "Too many mark-read requests, please try again later." },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
 export {
   loginLimiter,
   logoutLimiter,
@@ -121,4 +153,8 @@ export {
   deviceTokenLimiter,
   getTokensLimiter,
   createNotificationLimiter,
+  sendMessageLimiter,
+  getUsersLimiter,
+  getMessagesLimiter,
+  markReadLimiter,
 };
