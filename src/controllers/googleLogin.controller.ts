@@ -12,9 +12,9 @@ const toGoogleUserResponse = (user: IUser) => ({
   email: user.email,
   lastName: user.lastName,
   phoneNumber: {
-    code: user.phoneNumber!.code,
-    dialCode: user.phoneNumber!.dialCode,
-    number: user.phoneNumber!.number,
+    code: user.phoneNumber?.code || "",
+    dialCode: user.phoneNumber?.dialCode || "",
+    number: user.phoneNumber?.number || "",
   },
   occupation: user.occupation,
   provider: user.provider,

@@ -462,7 +462,7 @@ export const getUsers = async (req: Request, res: Response, next: NextFunction) 
 
     const [users, total] = await Promise.all([
       User.find(filter)
-        .select("_id firstName lastName email avatar")
+        .select("_id firstName lastName email avatarURL roles")
         .sort({ createdAt: -1 })
         .skip((page - 1) * limit)
         .limit(limit)

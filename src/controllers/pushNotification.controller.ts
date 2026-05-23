@@ -8,7 +8,7 @@ import User from "../model/user-model";
 export const getAllFcmTokens = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): Promise<void> => {
   try {
     const errors = validationResult(req);
@@ -25,7 +25,7 @@ export const getAllFcmTokens = async (
     if (isActive !== undefined) filter.isActive = isActive === "true";
 
     const deviceTokens = await DeviceToken.find(filter).select(
-      "fcmToken deviceType deviceId systemName user"
+      "fcmToken deviceType deviceId systemName user",
     );
 
     const tokens = deviceTokens.map((token) => ({
@@ -50,7 +50,7 @@ export const getAllFcmTokens = async (
 export const getFcmTokensByUser = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): Promise<void> => {
   try {
     const errors = validationResult(req);
@@ -73,7 +73,7 @@ export const getFcmTokensByUser = async (
     if (user._id) filter.user = user._id;
 
     const deviceTokensByEmail = await DeviceToken.find(filter).select(
-      "fcmToken deviceType deviceId systemName"
+      "fcmToken deviceType deviceId systemName",
     );
 
     if (deviceTokensByEmail.length === 0) {
@@ -102,7 +102,7 @@ export const getFcmTokensByUser = async (
 export const sendNotification = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): Promise<void> => {
   try {
     const errors = validationResult(req);
@@ -126,12 +126,12 @@ export const sendNotification = async (
     }
 
     const fcmTokens = deviceTokens.map((token) => token.fcmToken);
-    const response = await sendPushNotification(fcmTokens, title, body, data);
+    const response = await sendPushNotification([{ fcmTokens, badgeCount: 0 }], title, body, data);
 
     if (response.failedTokens.length > 0) {
       await DeviceToken.updateMany(
         { fcmToken: { $in: response.failedTokens } },
-        { isActive: false }
+        { isActive: false },
       );
       logger.log(`Deactivated ${response.failedTokens.length} invalid tokens`);
     }

@@ -23,53 +23,56 @@ export const initializeFirebase = () => {
 };
 
 export const sendPushNotification = async (
-  fcmTokens: string[],
+  payloads: { fcmTokens: string[]; badgeCount: number }[],
   title: string,
   body: string,
-  data?: Record<string, string>
+  data?: Record<string, string>,
 ) => {
   const firebase = initializeFirebase();
   const messaging = firebase.messaging();
 
-  const message: admin.messaging.MulticastMessage = {
-    tokens: fcmTokens,
-    notification: {
-      title,
-      body,
-    },
-    data: data || {},
-    android: {
-      priority: "high",
-      notification: {
-        sound: "default",
-      },
-    },
-    apns: {
-      payload: {
-        aps: {
-          sound: "default",
-        },
-      },
-    },
-  };
-
+  let successCount = 0;
+  let failureCount = 0;
+  const failedTokens: string[] = [];
   try {
-    const response = await messaging.sendEachForMulticast(message);
-    logger.log(`Successfully sent ${response.successCount} messages`);
-    logger.log(`Failed to send ${response.failureCount} messages`);
+    for (const payload of payloads) {
+      const message: admin.messaging.MulticastMessage = {
+        tokens: payload.fcmTokens,
+        notification: {
+          title,
+          body,
+        },
+        data: data || {},
+        android: {
+          priority: "high",
+          notification: {
+            sound: "default",
+          },
+        },
+        apns: {
+          payload: {
+            aps: {
+              badge: payload.badgeCount,
+              sound: "default",
+            },
+          },
+        },
+      };
 
-    const failedTokens: string[] = [];
-    response.responses.forEach((resp, idx) => {
-      if (!resp.success) {
-        failedTokens.push(fcmTokens[idx]);
-        logger.error(`Error sending to token ${fcmTokens[idx]}:`, resp.error);
-      }
-    });
-    return {
-      successCount: response.successCount,
-      failureCount: response.failureCount,
-      failedTokens,
-    };
+      const response = await messaging.sendEachForMulticast(message);
+      successCount += response.successCount;
+      failureCount += response.failureCount;
+
+      response.responses.forEach((resp, index) => {
+        if (!resp.success) {
+          failedTokens.push(payload.fcmTokens[index]);
+          logger.error(`Error sending to token ${payload.fcmTokens[index]}:`, resp.error);
+        }
+      });
+    }
+    logger.log(`Successfully sent ${successCount} messages`);
+    logger.log(`Failed to send ${failureCount} messages`);
+    return { successCount, failureCount, failedTokens };
   } catch (error) {
     logger.error("Error sending push notification:", error);
     throw error;

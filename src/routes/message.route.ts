@@ -1,6 +1,11 @@
 import { Router } from "express";
 import { validateRoleMiddleware } from "../middleware";
-import { getUnreadCount, getUserMessages, sendMessage } from "../controllers/message.controller";
+import {
+  getUnreadCount,
+  getUserMessages,
+  markMessageRead,
+  sendMessage,
+} from "../controllers/message.controller";
 import { getMessagesLimiter, markReadLimiter, sendMessageLimiter } from "../middleware/limiters";
 import { body, param } from "express-validator";
 
@@ -30,7 +35,7 @@ messageRoutes.patch(
   markReadLimiter,
   validateRoleMiddleware,
   [param("id").isMongoId()],
-  getUserMessages,
+  markMessageRead,
 );
 
 export default messageRoutes;

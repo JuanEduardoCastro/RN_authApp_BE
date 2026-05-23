@@ -60,6 +60,13 @@ export const sendMessage = async (
         const result = await sendPushNotification(payloadsWithTokens, title, body);
         pushSuccessCount = result.successCount;
         pushFailureCount = result.failureCount;
+
+        if (result.failedTokens.length > 0) {
+          await DeviceToken.updateMany(
+            { fcmToken: { $in: result.failedTokens } },
+            { isActive: false },
+          );
+        }
       }
     }
 
@@ -68,7 +75,7 @@ export const sendMessage = async (
       message: "Message sent successfully",
       data: {
         messageId: message._id,
-        recipientCount: recipientIds.lenght,
+        recipientCount: recipientIds.length,
         pushSuccessCount,
         pushFailureCount,
       },
@@ -111,7 +118,7 @@ export const getUserMessages = async (
       title: msg.title,
       body: msg.body,
       type: msg.type,
-      readBy: (msg.readBy as Types.ObjectId[]).some((id) => id.equals(userId)),
+      isRead: (msg.readBy as Types.ObjectId[]).some((id) => id.equals(userId)),
       isSystemMessage: msg.isSystemMessage,
       createdAt: msg.createdAt,
     }));
@@ -168,6 +175,7 @@ export const markMessageRead = async (
       res.status(404).json({
         error: "Message not found or user is not a recipient",
       });
+      return;
     }
 
     await Message.findByIdAndUpdate(messageId, { $addToSet: { readBy: userId } });
@@ -189,7 +197,7 @@ export const sendWelcomeMessage = async (userId: string, firstName: string): Pro
       recipients: [new Types.ObjectId(userId)],
       title: "Welcome to Auth.Jc",
       body: `Hi ${firstName || "there"}, glad to have you here. Explore the app and let me know your thoughts}`,
-      type: "in-app",
+      type: "in_app",
       isSystemMessage: true,
     });
     await message.save();

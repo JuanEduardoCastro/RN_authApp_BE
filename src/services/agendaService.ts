@@ -1,4 +1,4 @@
-import Agenda, { Job, JobPriority } from "agenda";
+import Agenda, { Job } from "agenda";
 import { logger } from "../utils/logger";
 import { sendWelcomeMessage } from "../controllers/message.controller";
 
@@ -16,20 +16,16 @@ const agenda = new Agenda({
   maxConcurrency: 3,
 });
 
-agenda.define(
-  "send-welcome-message",
-  { priority: JobPriority.normal, concurrency: 3 },
-  (job: Job, done) => {
-    const { userId, firstName } = job.attrs.data as WelcomeMessageJobData;
-    logger.info(`Running welcome message job for user ${userId} (${firstName})`);
-    sendWelcomeMessage(userId, firstName)
-      .then(() => done())
-      .catch((err) => {
-        logger.error(`Failed to send welcome message for user ${userId}:`, err);
-        done();
-      });
-  },
-);
+agenda.define("send-welcome-message", { concurrency: 3 }, (job: Job, done) => {
+  const { userId, firstName } = job.attrs.data as WelcomeMessageJobData;
+  logger.info(`Running welcome message job for user ${userId} (${firstName})`);
+  sendWelcomeMessage(userId, firstName)
+    .then(() => done())
+    .catch((err) => {
+      logger.error(`Failed to send welcome message for user ${userId}:`, err);
+      done();
+    });
+});
 
 export const scheduleWelcomeMessage = async (userId: string, firstName: string): Promise<void> => {
   try {
@@ -42,7 +38,7 @@ export const scheduleWelcomeMessage = async (userId: string, firstName: string):
 
 export const startAgenda = async (): Promise<void> => {
   await agenda.start();
-  logger.info("Agenda started");
+  logger.info("@@ --> Agenda started <-- @@");
 };
 
 const gracefullShutdown = async () => {
