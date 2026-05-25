@@ -100,7 +100,15 @@ export const validateAccessTokenMiddleware = async (
     req.token = token;
 
     next();
-  } catch (error) {
+  } catch (error: any) {
+    if (
+      error.name === "JsonWebTokenError" ||
+      error.name === "TokenExpiredError" ||
+      error.name === "NotBeforeError"
+    ) {
+      res.status(401).json({ error: error.message });
+      return;
+    }
     next(error);
   }
 };

@@ -40,7 +40,9 @@ export const validateNewAccessToken = async (req: Request, res: Response, next: 
   try {
     const token = req.token;
 
-    const existingRefreshToken = await RefreshToken.findOne({ refreshToken: token }).populate<{
+    const existingRefreshToken = await RefreshToken.findOneAndDelete({
+      refreshToken: token,
+    }).populate<{
       user: IUser;
     }>("user");
     if (!existingRefreshToken) {
@@ -61,10 +63,13 @@ export const validateNewAccessToken = async (req: Request, res: Response, next: 
       existingUser.roles!,
     );
 
+    const refreshToken = await createRefreshToken(existingUser);
+
     res.status(200).json({
       message: "Token is valid",
       data: {
         accessToken,
+        refreshToken,
         user: toUserResponse(existingUser),
       },
     });

@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { validateRoleMiddleware } from "../middleware";
+import { validateAccessTokenMiddleware, validateRoleMiddleware } from "../middleware";
 import {
   getUnreadCount,
   getUserMessages,
@@ -26,14 +26,19 @@ messageRoutes.post(
   sendMessage,
 );
 
-messageRoutes.get("/", getMessagesLimiter, validateRoleMiddleware, getUserMessages);
+messageRoutes.get("/", getMessagesLimiter, validateAccessTokenMiddleware, getUserMessages);
 
-messageRoutes.get("/unread-count", getMessagesLimiter, validateRoleMiddleware, getUnreadCount);
+messageRoutes.get(
+  "/unread-count",
+  getMessagesLimiter,
+  validateAccessTokenMiddleware,
+  getUnreadCount,
+);
 
 messageRoutes.patch(
   "/:id/read",
   markReadLimiter,
-  validateRoleMiddleware,
+  validateAccessTokenMiddleware,
   [param("id").isMongoId()],
   markMessageRead,
 );

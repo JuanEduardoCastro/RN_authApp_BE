@@ -15,6 +15,8 @@ export const setDevicetoken = async (req: Request, res: Response, next: NextFunc
       req.body;
     const { _id } = req.tokenVerified;
 
+    await DeviceToken.deleteOne({ fcmToken, user: { $ne: _id } });
+
     const deviceToken = await DeviceToken.findOneAndUpdate(
       { user: _id, deviceId },
       {
