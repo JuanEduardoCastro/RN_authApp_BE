@@ -113,7 +113,7 @@ const createBrevoEmail = (to: string, subject: string, token: string) => {
                       </tr>
                     </table>   
                     <p style="margin: 0 0 15px 0;">${details.extraText}</p>
-                    <p style="margin: 0;">If you did not initiate this request,please disregard this email.</p>
+                    <p style="margin: 0;">If you did not initiate this request, please disregard this email.</p>
                   </td>
                 </tr>
                 <tr>

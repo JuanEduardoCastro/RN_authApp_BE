@@ -167,7 +167,9 @@ export const validateGoogleToken = async (
     }
     const googleTicket = await googleClient.verifyIdToken({
       idToken: token as string,
-      audience: process.env.GOOGLE_CLIENT_ID,
+      audience: [process.env.GOOGLE_CLIENT_ID, process.env.GOOGLE_IOS_CLIENT_ID].filter(
+        Boolean,
+      ) as string[],
     });
 
     const googleClientPayload = googleTicket.getPayload();

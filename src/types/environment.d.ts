@@ -6,6 +6,7 @@ declare namespace NodeJS {
     RTOKEN_SECRET_KEY: string;
     GMAIL_TOKEN_SECRET_KEY: string;
     GOOGLE_CLIENT_ID: string;
+    GOOGLE_IOS_CLIENT_ID: string;
     ATOKEN_SECRET_KEY: string;
     BREVO_API_KEY: string;
     BREVO_SENDER_EMAIL: string;
