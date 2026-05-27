@@ -10,8 +10,6 @@ declare namespace NodeJS {
     ATOKEN_SECRET_KEY: string;
     BREVO_API_KEY: string;
     BREVO_SENDER_EMAIL: string;
-    GITHUB_CLIENT_ID: string;
-    GITHUB_CLIENT_SECRET: string;
     APPLE_BUNDLE_ID: string;
     FIREBASE_PROJECT_ID: string;
     FIREBASE_PRIVATE_KEY: string;
