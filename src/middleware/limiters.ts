@@ -1,7 +1,7 @@
 import rateLimit, { ipKeyGenerator } from "express-rate-limit";
 
 const loginLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minute
+  windowMs: 5 * 60 * 1000, // 5 minute
   max: 5,
   message: { error: "Too many login attempts, please try again later." },
   keyGenerator: (req) => req.body.email?.toLowerCase() || ipKeyGenerator(req.ip ?? ""),
@@ -11,7 +11,7 @@ const loginLimiter = rateLimit({
 });
 
 const logoutLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minute
+  windowMs: 5 * 60 * 1000, // 5 minute
   max: 5,
   message: { error: "Too many logout attempts, please try again later." },
   standardHeaders: true,
@@ -19,7 +19,7 @@ const logoutLimiter = rateLimit({
 });
 
 const newPasswordLimiter = rateLimit({
-  windowMs: 60 * 60 * 1000, // 1 hour
+  windowMs: 5 * 60 * 1000, // 5 minute
   max: 3,
   message: { error: "Too many save password attempts, please try again later." },
   keyGenerator: (req) => req.body.email?.toLowerCase() || ipKeyGenerator(req.ip ?? ""),
@@ -28,7 +28,7 @@ const newPasswordLimiter = rateLimit({
 });
 
 const resetPasswordLimiter = rateLimit({
-  windowMs: 60 * 60 * 1000, // 1 hour
+  windowMs: 5 * 60 * 1000, // 5 minute
   max: 3,
   message: { error: "Too many password reset attempts, please try again later." },
   keyGenerator: (req) => req.body.email?.toLowerCase() || ipKeyGenerator(req.ip ?? ""),
