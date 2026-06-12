@@ -47,6 +47,7 @@ export const sendPushNotification = async (
           priority: "high",
           notification: {
             sound: "default",
+            channelId: "default",
           },
         },
         apns: {
