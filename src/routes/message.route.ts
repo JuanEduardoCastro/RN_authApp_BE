@@ -5,8 +5,14 @@ import {
   getUserMessages,
   markMessageRead,
   sendMessage,
+  deleteMessage,
 } from "../controllers/message.controller";
-import { getMessagesLimiter, markReadLimiter, sendMessageLimiter } from "../middleware/limiters";
+import {
+  getMessagesLimiter,
+  markReadLimiter,
+  sendMessageLimiter,
+  deleteMessageLimiter,
+} from "../middleware/limiters";
 import { body, param } from "express-validator";
 
 const messageRoutes: Router = Router();
@@ -41,6 +47,14 @@ messageRoutes.patch(
   validateAccessTokenMiddleware,
   [param("id").isMongoId()],
   markMessageRead,
+);
+
+messageRoutes.delete(
+  "/:id/delete",
+  deleteMessageLimiter,
+  validateAccessTokenMiddleware,
+  [param("id").isMongoId()],
+  deleteMessage,
 );
 
 export default messageRoutes;

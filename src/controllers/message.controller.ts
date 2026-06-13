@@ -43,6 +43,7 @@ export const sendMessage = async (
           const unreadCount = await Message.countDocuments({
             recipients: userId,
             readBy: { $ne: userId },
+            deletedBy: { $nin: [userId] },
           });
           const tokens = await DeviceToken.find({ user: userId, isActive: true }).select(
             "fcmToken",
@@ -99,7 +100,10 @@ export const getUserMessages = async (
     const limit = Math.max(1, parseInt(req.query.limit as string) || 20);
     const unreadOnly = req.query.unreadOnly === "true";
 
-    const filter: Record<string, any> = { recipients: userId };
+    const filter: Record<string, any> = {
+      recipients: userId,
+      deletedBy: { $nin: [userId] },
+    };
     if (unreadOnly) filter.readBy = { $ne: userId };
 
     const [messages, total] = await Promise.all([
@@ -143,7 +147,11 @@ export const getUnreadCount = async (
   try {
     const userId = new Types.ObjectId((req.tokenVerified as any)._id as string);
 
-    const count = await Message.countDocuments({ recipients: userId, readBy: { $ne: userId } });
+    const count = await Message.countDocuments({
+      recipients: userId,
+      readBy: { $ne: userId },
+      deletedBy: { $nin: [userId] },
+    });
 
     res.status(200).json({
       success: true,
@@ -204,5 +212,33 @@ export const sendWelcomeMessage = async (userId: string, firstName: string): Pro
     logger.info(`Welcome message sent to user ${userId}`);
   } catch (error) {
     logger.error(`Error sending welcome message to user ${userId}:`, error);
+  }
+};
+
+export const deleteMessage = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> => {
+  try {
+    const userId = new Types.ObjectId((req.tokenVerified as any)._id as string);
+    const messageId = req.params.id;
+
+    const message = await Message.findOne({
+      _id: messageId,
+      recipients: userId,
+    });
+
+    if (!message) {
+      res.status(404).json({ error: "Message not found or user is not a recipient." });
+      return;
+    }
+
+    await Message.findByIdAndUpdate(messageId, { $addToSet: { deletedBy: userId } });
+
+    res.status(200).json({ message: "Message deleted successfully." });
+    return;
+  } catch (error) {
+    next(error);
   }
 };

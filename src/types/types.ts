@@ -64,6 +64,7 @@ export interface IMessage {
   body: string;
   type: "push" | "in_app" | "both";
   readBy: ObjectId[];
+  deletedBy: ObjectId[];
   isSystemMessage: boolean;
   createdAt: Date;
   updatedAt: Date;

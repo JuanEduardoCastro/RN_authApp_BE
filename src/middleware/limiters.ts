@@ -139,6 +139,14 @@ const markReadLimiter = rateLimit({
   legacyHeaders: false,
 });
 
+const deleteMessageLimiter = rateLimit({
+  windowMs: 1 * 60 * 1000, // 1 minutes
+  max: 60,
+  message: { error: "Too many delete message requests, please try again later." },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
 export {
   loginLimiter,
   logoutLimiter,
@@ -157,4 +165,5 @@ export {
   getUsersLimiter,
   getMessagesLimiter,
   markReadLimiter,
+  deleteMessageLimiter,
 };
