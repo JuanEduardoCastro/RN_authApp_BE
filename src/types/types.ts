@@ -12,6 +12,7 @@ export interface IUser {
   provider?: IProvider;
   avatarURL?: string | null;
   roles: "user" | "admin" | "superadmin";
+  firstLoginMessageSent: boolean;
   createdAt: Date;
   updatedAt: Date;
 }

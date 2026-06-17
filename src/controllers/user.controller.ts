@@ -90,6 +90,7 @@ export const loginUser = async (req: Request, res: Response, next: NextFunction)
     }
 
     const { email, password }: IUser = req.body;
+
     const existingUser = await User.findOne({ email }).select("+password");
     if (!existingUser || !existingUser.password) {
       res.status(401).json({ error: "Invalid credentials" });
@@ -111,6 +112,12 @@ export const loginUser = async (req: Request, res: Response, next: NextFunction)
       existingUser.roles!,
     );
     const refreshToken = await createRefreshToken(existingUser);
+
+    if (!existingUser.firstLoginMessageSent) {
+      existingUser.firstLoginMessageSent = true;
+      await existingUser.save();
+      scheduleWelcomeMessage(existingUser._id.toString(), existingUser.firstName || "there");
+    }
 
     res.status(200).json({
       message: "User logged in successfully",

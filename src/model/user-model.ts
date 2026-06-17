@@ -60,8 +60,12 @@ const userSchema = new mongoose.Schema(
       enum: ["en", "es"],
       default: "en",
     },
+    firstLoginMessageSent: {
+      type: Boolean,
+      default: false,
+    },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 const User = mongoose.model<IUser>("User", userSchema);

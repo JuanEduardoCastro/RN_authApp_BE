@@ -5,6 +5,7 @@ import { Message } from "../model/message-model";
 import { DeviceToken } from "../model/deviceToken-model";
 import { sendPushNotification } from "../services/firebaseServices";
 import { logger } from "../utils/logger";
+import { sendFCMToUser } from "../services/fcmService";
 
 export const sendMessage = async (
   req: Request,
@@ -200,15 +201,21 @@ export const markMessageRead = async (
 
 export const sendWelcomeMessage = async (userId: string, firstName: string): Promise<void> => {
   try {
-    const message = new Message({
+    const name = firstName || "there";
+    const title = "Welcome to Auth.Jc!";
+    const body = `Hi ${name}! We're glad you're here. Explore your profile, customize your theme, and check back for updates.`;
+
+    await Message.create({
       sender: null,
       recipients: [new Types.ObjectId(userId)],
-      title: "Welcome to Auth.Jc",
-      body: `Hi ${firstName || "there"}, glad to have you here. Explore the app and let me know your thoughts}`,
-      type: "in_app",
+      title,
+      body,
+      type: "both",
       isSystemMessage: true,
     });
-    await message.save();
+
+    await sendFCMToUser(userId, { title, body });
+
     logger.info(`Welcome message sent to user ${userId}`);
   } catch (error) {
     logger.error(`Error sending welcome message to user ${userId}:`, error);
