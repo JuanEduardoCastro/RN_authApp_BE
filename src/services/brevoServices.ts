@@ -174,7 +174,7 @@ export const sendBrevoWelcomeEmail = (email: string, firstName: string) => {
       email: process.env.BREVO_SENDER_EMAIL,
       name: "Auth.Jc",
     },
-    to: [[email]],
+    to: [{ email: email }],
     subject: `Welcome to Auth.Jc!`,
     textContent: `Hi ${name},\n\nWelcome to Auth.Jc! Your account has been created successfully.\n\nYou can now log in and start using the app.\n\n— The Auth.Jc Team`,
     htmlContent: `
