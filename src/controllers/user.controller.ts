@@ -113,10 +113,17 @@ export const loginUser = async (req: Request, res: Response, next: NextFunction)
     );
     const refreshToken = await createRefreshToken(existingUser);
 
-    if (!existingUser.firstLoginMessageSent) {
-      existingUser.firstLoginMessageSent = true;
-      await existingUser.save();
-      scheduleWelcomeMessage(existingUser._id.toString(), existingUser.firstName || "there");
+    const flagged = await User.findOneAndUpdate(
+      { _id: existingUser._id, firstLoginMessageSent: false },
+      {
+        $set: {
+          firstLoginMessageSent: true,
+        },
+      },
+      { new: true },
+    );
+    if (flagged) {
+      await scheduleWelcomeMessage(flagged._id.toString(), flagged.firstName || "there");
     }
 
     res.status(200).json({
