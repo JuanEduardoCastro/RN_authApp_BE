@@ -13,6 +13,7 @@ import {
   sendBrevoEmailValidation,
   sendBrevoInvalidEmail,
   sendBrevoResetPasswordValidation,
+  sendBrevoWelcomeEmail,
 } from "../services/brevoServices";
 import { scheduleWelcomeMessage } from "../services/agendaService";
 
@@ -272,7 +273,7 @@ export const createUser = async (req: Request, res: Response, next: NextFunction
     });
 
     if (user) {
-      await scheduleWelcomeMessage(user._id.toString(), user.firstName || "there");
+      sendBrevoWelcomeEmail(email, firstName);
       res.status(201).json({ message: "User created successfully" });
       return;
     }

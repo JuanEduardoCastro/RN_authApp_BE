@@ -3,6 +3,8 @@ import { IUser } from "../types/types";
 import User from "../model/user-model";
 import { createNewAccessToken, createRefreshToken } from "./refreshToken.controller";
 import { RefreshToken } from "../model/refreshToken-model";
+import { sendBrevoWelcomeEmail } from "../services/brevoServices";
+import { scheduleWelcomeMessage } from "../services/agendaService";
 
 const toAppleUserResponse = (user: IUser) => ({
   id: user._id,
@@ -53,6 +55,12 @@ export const appleLogin = async (
         );
 
         const refreshToken = await createRefreshToken(newAppleUser);
+
+        sendBrevoWelcomeEmail(newAppleUser.email!, newAppleUser.firstName || "");
+        await scheduleWelcomeMessage(
+          newAppleUser._id.toString(),
+          newAppleUser.firstName || "there",
+        );
 
         res.status(200).json({
           message: "User created and logged in successfully",

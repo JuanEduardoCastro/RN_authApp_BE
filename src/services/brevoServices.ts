@@ -166,3 +166,66 @@ export const sendBrevoInvalidEmail = async (email: string) => {
     logger.log(`Email check for non-existing account: ${email}`);
   return;
 };
+
+export const sendBrevoWelcomeEmail = (email: string, firstName: string) => {
+  const name = firstName.charAt(0).toUpperCase() + firstName.slice(1) || "there";
+  const payload = {
+    sender: {
+      email: process.env.BREVO_SENDER_EMAIL,
+      name: "Auth.Jc",
+    },
+    to: [[email]],
+    subject: `Welcome to Auth.Jc!`,
+    textContent: `Hi ${name},\n\nWelcome to Auth.Jc! Your account has been created successfully.\n\nYou can now log in and start using the app.\n\n— The Auth.Jc Team`,
+    htmlContent: `
+      <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Welcome!</title>
+        <style type="text/css">
+          body { margin: 0; padding: 0; background-color: #f4f4f4; font-family: Arial, sans-serif; }
+          table { border-collapse: collapse; mso-table-lspace: 0pt;mso-table-rspace: 0pt; }
+          td { padding: 0; }
+          a { text-decoration: none; }
+          @media only screen and (max-width: 600px) {
+            .container { width: 100% !important; }
+            .content { padding: 20px !important; }
+          }
+        </style>
+      </head>
+      <body style="margin: 0; padding: 0; background-color: #f1f5f9;">
+        <table border="0" cellpadding="0" cellspacing="0" width="100%" style="border-collapse: collapse;">
+          <tr>
+            <td align="center" style="padding: 20px 0 30px 0;">
+              <table border="0" cellpadding="0" cellspacing="0" width="600" class="container" style="border-collapse: collapse; background-color: #f1f5f9; box-shadow: 0 0 10px rgba(0,0,0,0.1);">
+                <tr>
+                  <td align="center" style="padding: 40px 0 20px 0; background-color: #7646c9;">
+                    <h1 style="color: #f1f5f9; margin: 0; font-size: 24px;">Auth.Jc</h1>
+                  </td>
+                </tr>
+                <tr>
+                  <td style="padding: 40px; font-family: Arial, sans-serif; font-size: 16px; line-height: 24px; color: #333333;" class="content">
+                    <p style="margin: 0 0 15px 0; font-weight: bold;">Hi ${name},</p>
+                    <p style="margin: 0 0 15px 0;">Welcome to <strong>Auth.Jc</strong>! Your account has been created successfully.</p>
+                    <p style="margin: 0 0 15px 0;">You can now log in and start using all the features of the app.</p>
+                    <p style="margin: 0;">We're glad to have you on board.</p>
+                  </td>
+                </tr>
+                <tr>
+                  <td align="center" style="padding: 30px; background-color: #eeeeee; font-family: Arial, sans-serif; font-size: 12px; line-height: 18px; colo:#777777;">
+                    <p style="margin: 0;">&copy; 2026 - Auth.Jc. All rights reserved.</p>
+                    <p style="margin: 10px 0 0 0;">
+                      <a href="mailto:${process.env.BREVO_SENDER_EMAIL}"style="color: #777777; text-decoration: underline;">${process.env.BREVO_SENDER_EMAIL}
+                      </a>
+                    </p>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+        </table>
+      </body>
+    `,
+  };
+  return sendBrevoEmail(payload);
+};

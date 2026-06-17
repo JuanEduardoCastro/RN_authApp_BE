@@ -5,6 +5,8 @@ import { extractToken } from "../middleware";
 import User from "../model/user-model";
 import { createNewAccessToken, createRefreshToken } from "./refreshToken.controller";
 import { RefreshToken } from "../model/refreshToken-model";
+import { sendBrevoWelcomeEmail } from "../services/brevoServices";
+import { scheduleWelcomeMessage } from "../services/agendaService";
 
 const toGoogleUserResponse = (user: IUser) => ({
   id: user._id,
@@ -69,6 +71,12 @@ export const googleLogin = async (req: Request, res: Response, next: NextFunctio
           newGoogleUser.roles!,
         );
         const refreshToken = await createRefreshToken(newGoogleUser);
+
+        sendBrevoWelcomeEmail(newGoogleUser.email!, newGoogleUser.firstName || "");
+        await scheduleWelcomeMessage(
+          newGoogleUser._id.toString(),
+          newGoogleUser.firstName || "there",
+        );
 
         res.status(200).json({
           message: "User created and logged in successfully",

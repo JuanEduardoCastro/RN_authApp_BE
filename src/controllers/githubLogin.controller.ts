@@ -3,6 +3,8 @@ import { IUser } from "../types/types";
 import User from "../model/user-model";
 import { RefreshToken } from "../model/refreshToken-model";
 import { createNewAccessToken, createRefreshToken } from "./refreshToken.controller";
+import { sendBrevoWelcomeEmail } from "../services/brevoServices";
+import { scheduleWelcomeMessage } from "../services/agendaService";
 
 const toGithubUserResponse = (user: IUser) => ({
   id: user._id,
@@ -49,6 +51,12 @@ export const githubLogin = async (req: Request, res: Response, next: NextFunctio
           newGithubUser.roles!,
         );
         const refreshToken = await createRefreshToken(newGithubUser);
+
+        sendBrevoWelcomeEmail(newGithubUser.email!, newGithubUser.firstName || "");
+        await scheduleWelcomeMessage(
+          newGithubUser._id.toString(),
+          newGithubUser.firstName || "there",
+        );
 
         res.status(200).json({
           message: "User created and logged in successfully",
