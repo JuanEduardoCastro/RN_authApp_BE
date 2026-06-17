@@ -168,7 +168,7 @@ export const sendBrevoInvalidEmail = async (email: string) => {
 };
 
 export const sendBrevoWelcomeEmail = (email: string, firstName: string) => {
-  const name = firstName.charAt(0).toUpperCase() + firstName.slice(1) || "there";
+  const name = firstName || "there";
   const payload = {
     sender: {
       email: process.env.BREVO_SENDER_EMAIL,
