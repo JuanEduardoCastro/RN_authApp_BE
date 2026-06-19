@@ -5,7 +5,7 @@ import { extractToken } from "../middleware";
 import User from "../model/user-model";
 import { createNewAccessToken, createRefreshToken } from "./refreshToken.controller";
 import { RefreshToken } from "../model/refreshToken-model";
-import { sendBrevoWelcomeEmail } from "../services/brevoServices";
+import { sendSESWelcomeEmail } from "../services/sesServices";
 import { scheduleWelcomeMessage } from "../services/agendaService";
 
 const toGoogleUserResponse = (user: IUser) => ({
@@ -72,7 +72,7 @@ export const googleLogin = async (req: Request, res: Response, next: NextFunctio
         );
         const refreshToken = await createRefreshToken(newGoogleUser);
 
-        sendBrevoWelcomeEmail(newGoogleUser.email!, newGoogleUser.firstName || "");
+        sendSESWelcomeEmail(newGoogleUser.email!, newGoogleUser.firstName || "");
         await scheduleWelcomeMessage(
           newGoogleUser._id.toString(),
           newGoogleUser.firstName || "there",

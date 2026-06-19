@@ -10,11 +10,11 @@ import {
 } from "./refreshToken.controller";
 import { RefreshToken, TempToken } from "../model/refreshToken-model";
 import {
-  sendBrevoEmailValidation,
-  sendBrevoInvalidEmail,
-  sendBrevoResetPasswordValidation,
-  sendBrevoWelcomeEmail,
-} from "../services/brevoServices";
+  sendSESEmailValidation,
+  sendSESInvalidEmail,
+  sendSESResetPasswordValidation,
+  sendSESWelcomeEmail,
+} from "../services/sesServices";
 import { scheduleWelcomeMessage } from "../services/agendaService";
 
 const toUserResponse = (user: IUser) => ({
@@ -205,14 +205,14 @@ export const checkEmail = async (req: Request, res: Response, next: NextFunction
     const { email, provider } = req.body;
     const checkEmail = await User.findOne({ email: email });
     if (checkEmail !== null) {
-      sendBrevoInvalidEmail(email);
+      sendSESInvalidEmail(email);
       res.status(200).json({ message: "If this email is available, an email will be sent." });
       return;
     }
     const isNew = true;
     const emailToken = await createEmailToken(email, isNew);
     if (!provider) {
-      sendBrevoEmailValidation(emailToken, email);
+      sendSESEmailValidation(emailToken, email);
     }
     res.status(200).json({
       message: "If this email is available, an email will be sent.",
@@ -273,7 +273,7 @@ export const createUser = async (req: Request, res: Response, next: NextFunction
     });
 
     if (user) {
-      sendBrevoWelcomeEmail(email, firstName);
+      sendSESWelcomeEmail(email, firstName);
       res.status(201).json({ message: "User created successfully" });
       return;
     }
@@ -297,7 +297,7 @@ export const resetPassword = async (req: Request, res: Response, next: NextFunct
 
     const checkEmail = await User.findOne({ email });
     if (!checkEmail) {
-      sendBrevoInvalidEmail(email);
+      sendSESInvalidEmail(email);
       res.status(200).json({ message: "If this email is available, an email will be sent." });
       return;
     }
@@ -305,7 +305,7 @@ export const resetPassword = async (req: Request, res: Response, next: NextFunct
     const isNew = false;
     const emailToken = await createEmailToken(email, isNew, id);
     if (emailToken) {
-      sendBrevoResetPasswordValidation(emailToken, email);
+      sendSESResetPasswordValidation(emailToken, email);
     }
     res.status(200).json({
       message: "If this email is available, an email will be sent.",

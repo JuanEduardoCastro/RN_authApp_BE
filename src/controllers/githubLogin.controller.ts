@@ -3,7 +3,7 @@ import { IUser } from "../types/types";
 import User from "../model/user-model";
 import { RefreshToken } from "../model/refreshToken-model";
 import { createNewAccessToken, createRefreshToken } from "./refreshToken.controller";
-import { sendBrevoWelcomeEmail } from "../services/brevoServices";
+import { sendSESWelcomeEmail } from "../services/sesServices";
 import { scheduleWelcomeMessage } from "../services/agendaService";
 
 const toGithubUserResponse = (user: IUser) => ({
@@ -52,7 +52,7 @@ export const githubLogin = async (req: Request, res: Response, next: NextFunctio
         );
         const refreshToken = await createRefreshToken(newGithubUser);
 
-        sendBrevoWelcomeEmail(newGithubUser.email!, newGithubUser.firstName || "");
+        sendSESWelcomeEmail(newGithubUser.email!, newGithubUser.firstName || "");
         await scheduleWelcomeMessage(
           newGithubUser._id.toString(),
           newGithubUser.firstName || "there",

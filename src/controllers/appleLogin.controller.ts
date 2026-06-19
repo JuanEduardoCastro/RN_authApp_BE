@@ -3,7 +3,7 @@ import { IUser } from "../types/types";
 import User from "../model/user-model";
 import { createNewAccessToken, createRefreshToken } from "./refreshToken.controller";
 import { RefreshToken } from "../model/refreshToken-model";
-import { sendBrevoWelcomeEmail } from "../services/brevoServices";
+import { sendSESWelcomeEmail } from "../services/sesServices";
 import { scheduleWelcomeMessage } from "../services/agendaService";
 
 const toAppleUserResponse = (user: IUser) => ({
@@ -56,7 +56,7 @@ export const appleLogin = async (
 
         const refreshToken = await createRefreshToken(newAppleUser);
 
-        sendBrevoWelcomeEmail(newAppleUser.email!, newAppleUser.firstName || "");
+        sendSESWelcomeEmail(newAppleUser.email!, newAppleUser.firstName || "");
         await scheduleWelcomeMessage(
           newAppleUser._id.toString(),
           newAppleUser.firstName || "there",
