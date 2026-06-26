@@ -147,6 +147,14 @@ const deleteMessageLimiter = rateLimit({
   legacyHeaders: false,
 });
 
+const deleteAccountLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, // 60 minutes
+  max: 3,
+  message: { error: "Too many account deletion attempts, please try again later." },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
 export {
   loginLimiter,
   logoutLimiter,
@@ -166,4 +174,5 @@ export {
   getMessagesLimiter,
   markReadLimiter,
   deleteMessageLimiter,
+  deleteAccountLimiter,
 };

@@ -26,6 +26,7 @@ import {
   appleLoginLimiter,
   checkEmailLimiter,
   createUserLimiter,
+  deleteAccountLimiter,
   deviceTokenLimiter,
   getUsersLimiter,
   githubLoginLimiter,
@@ -45,6 +46,7 @@ import {
 import { googleLogin } from "../controllers/googleLogin.controller";
 import { githubLogin } from "../controllers/githubLogin.controller";
 import { appleLogin } from "../controllers/appleLogin.controller";
+import { deleteAccount } from "../controllers/deleteAccount.controller";
 
 const userRoutes: Router = Router();
 
@@ -152,6 +154,15 @@ userRoutes.delete(
   deactivateDeviceToken,
 );
 userRoutes.get("/devices", deviceTokenLimiter, validateAccessTokenMiddleware, getAllUsersDevice);
+
+/* --- Hard Delete Account Routes --- */
+
+userRoutes.delete(
+  "/deleteAccount",
+  deleteAccountLimiter,
+  validateAccessTokenMiddleware,
+  deleteAccount,
+);
 
 /* --- Google validate token Routes --- */
 
